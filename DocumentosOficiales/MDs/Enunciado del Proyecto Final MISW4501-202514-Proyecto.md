@@ -1,8 +1,4 @@
-
-
-![Universidad de los Andes logo] Facultad de
-Universidad de los Andes | Ingeniería
-Colombia
+Facultad de Universidad de los Andes | Ingeniería Colombia
 
 # Universidad de Los Andes
 ## Departamento de Ingeniería de Sistemas y Computación
@@ -24,15 +20,8 @@ Universidad de los Andes - Departamento de Sistemas y Computación
 
 El proyecto del curso tiene como objetivo poner en práctica la mayor cantidad de conocimientos y habilidades aprendidos durante la maestría. Este enunciado de proyecto servirá para diseñar y construir el producto final de cierre de la maestría que contempla tanto el proyecto I (MISW-4501) como el proyecto II (MISW-4502).
 
-Universidad de los Andes – Departamento de Sistemas y Computación
-
 
 ---
-
-
-
-
-Universidad de los Andes | Facultad de Ingeniería
 
 # MediSupply
 
@@ -56,17 +45,7 @@ Las siguientes cifras describen el comportamiento de ventas e ingresos actual de
 | 1200 laboratorios y centros de diagnóstico atendidos |
 
 
-Universidad de los Andes – Departamento de Sistemas y Computación
-
-
-
 ---
-
-
-
-
-Universidad de los Andes | Facultad de Ingeniería
-Colombia
 
 # MediSupply
 
@@ -89,33 +68,32 @@ Colombia
 - Valor promedio mensual gestionado por gerente de cuenta: ~$65,000
 - Cartera media atendida por gerente de cuenta: 20–30 instituciones
 
-Universidad de los Andes – Departamento de Sistemas y Computación
-
-
-
 ---
-
-
 
 MediSupply
 
-# Medicamentos especiales y controlados:
-
+## Medicamentos especiales y controlados:
 ~1,200 referencias.
 
-# Insumos hospitalarios y quirúrgicos:
-
+## Insumos hospitalarios y quirúrgicos:
 ~2,000 referencias
 
-El área de compras de MediSupply es responsable de la adquisición de insumos médicos, medicamentos de alta complejidad y dispositivos biomédicos, abasteciendo a los centros de distribución ubicados en Colombia, Perú, Ecuador y México.
-
-# Equipos y dispositivos biomédicos:
-
+## Equipos y dispositivos biomédicos:
 ~800 referencias
 
-# Reactivos y pruebas diagnósticas:
-
+## Reactivos y pruebas diagnósticas:
 ~1,000 referencias
+
+##  Planificación de compras centralizada, 
+con visibilidad de la demanda acumulada en los cuatro países.
+
+## Evaluación de condiciones logísticas y sanitarias:
+- cadena de frío
+- vida útil mínima al momento de recepción
+- restricciones por zona o institución
+
+
+El área de compras de MediSupply es responsable de la adquisición de insumos médicos, medicamentos de alta complejidad y dispositivos biomédicos, abasteciendo a los centros de distribución ubicados en Colombia, Perú, Ecuador y México.
 
 La compañía trabaja con una red de más de 400 proveedores certificados, tanto nacionales como internacionales, los cuales deben cumplir con estrictas normativas sanitarias (FDA, EMA, INVIMA, DIGEMID, COFEPRIS, entre otras).
 
@@ -125,22 +103,12 @@ El proceso de compras incluye integración con sistemas regulatorios locales par
 
 El proceso implica la negociación con fabricantes para ajustar cantidades, precios por volumen, condiciones de entrega y cumplimiento de normativas de empaque.
 
-# Evaluación de condiciones logísticas y sanitarias:
-
-- cadena de frío
-- vida útil mínima al momento de recepción
-- restricciones por zona o institución
-
-Universidad de los Andes – Departamento de Sistemas y Computación
-
 
 
 ---
 
 
 MediSupply
-
-Asesoría personalizada sobre productos más adecuados, compatibilidad con equipos existentes, condiciones de almacenamiento y disponibilidad logística.
 
 El equipo comercial de MediSupply está conformado por una fuerza de 150 gerentes de cuenta, distribuidos entre los cuatro países donde opera la compañía.
 
@@ -148,22 +116,21 @@ Cada comercial es responsable de entre unas 20 a 30 instituciones de salud, que 
 
 El rol del comercial va más allá del cierre de pedidos: actúa como asesor técnico y estratégico, recomendando productos adecuados según el perfil de atención de cada institución, sus necesidades clínicas y los eventos sanitarios que afectan su zona de cobertura.
 
-Visitas presenciales programadas a cada institución, con registro de interacciones, necesidades identificadas y seguimiento de pedidos anteriores.
+*Asesoría personalizada sobre productos más adecuados, compatibilidad con equipos existentes, condiciones de almacenamiento y disponibilidad logística.*
 
-Toma de pedidos en línea, con consulta (idealmente) de inventario en tiempo real.
+*Registro de observaciones sobre el uso de productos, reportes de eventos adversos y retroalimentación clínica.*
 
-Análisis del entorno epidemiológico y eventos de salud pública para anticipar necesidades (ej. campañas de vacunación, picos respiratorios, brotes infecciosos).
+*Visitas presenciales programadas a cada institución, con registro de interacciones, necesidades identificadas y seguimiento de pedidos anteriores.*
 
-Universidad de los Andes – Departamento de Sistemas y Computación
+*Toma de pedidos en línea, con consulta (idealmente) de inventario en tiempo real.*
 
+*Análisis del entorno epidemiológico y eventos de salud pública para anticipar necesidades (ej. campañas de vacunación, picos respiratorios, brotes infecciosos).*
 
 ---
 
-
-
 MediSupply
 
-# Clasificación de productos por tipo de almacenamiento y zona de rotación (alta/baja)
+
 
 La operación logística de MediSupply es una de las funciones críticas para garantizar la disponibilidad oportuna de insumos, medicamentos y dispositivos biomédicos en centros de salud.
 
@@ -173,15 +140,13 @@ MediSupply opera con una red de 25 centros de distribución en 4 países, equipa
 
 La flota logística incluye 90 vehículos propios, de los cuales 35 cuentan con cadena de frío certificada, además de alianzas con operadores tercerizados para zonas remotas.
 
-Recepción de productos en bodega tras validación documental, registro de lote, fecha de vencimiento y condiciones especiales.
+* Clasificación de productos por tipo de almacenamiento y zona de rotación (alta/baja)
+* Recepción de productos en bodega tras validación documental, registro de lote, fecha de vencimiento y condiciones especiales.
+* Monitoreo en tiempo real de ubicación y temperatura de los vehículos.
+* Planeación de rutas con base en prioridad clínica, distancia, tipo de producto y perfil del cliente.
+* Recepción de productos en el cliente con validación digital de entrega, captura de novedades y, en algunos casos, recolección de productos devueltos.
 
-Monitoreo en tiempo real de ubicación y temperatura de los vehículos.
 
-Planeación de rutas con base en prioridad clínica, distancia, tipo de producto y perfil del cliente.
-
-Recepción de productos en el cliente con validación digital de entrega, captura de novedades y, en algunos casos, recolección de productos devueltos.
-
-Universidad de los Andes – Departamento de Sistemas y Computación
 
 
 ---
@@ -191,17 +156,15 @@ MediSupply
 
 A pesar del alcance y experiencia del área de compras, se presentan múltiples retos que afectan la eficiencia operativa y el cumplimiento de los objetivos estratégicos:
 
-"Importamos tres lotes de soluciones parenterales para México sin verificar que ya estaban almacenadas en Perú y con fecha de vencimiento próxima. Se vencieron sin ser utilizadas.”
-
-— Directora de Compras, MediSupply
-
 - Falta de integración con inventarios reales y demanda proyectada, lo que conduce a sobreabastecimiento o desabastecimiento de productos clave.
 - Descoordinación entre áreas de ventas y compras, generando compras tardías o mal dimensionadas.
 - Pérdidas anuales cercanas a USD $650,000 asociadas a vencimientos de medicamentos, productos sin rotación o rupturas en la cadena de frío.
 - Información incompleta sobre proveedores, lo que dificulta la comparación entre fabricantes y limita las opciones de negociación regional.
 - En ocasiones, se duplican compras de productos que ya están disponibles en bodegas de otro país, debido a la falta de un portafolio global unificado.
 
-Universidad de los Andes – Departamento de Sistemas y Computación
+"Importamos tres lotes de soluciones parenterales para México sin verificar que ya estaban almacenadas en Perú y con fecha de vencimiento próxima. Se vencieron sin ser utilizadas.”
+
+— Directora de Compras, MediSupply
 
 
 ---
@@ -210,12 +173,6 @@ Universidad de los Andes – Departamento de Sistemas y Computación
 MediSupply
 
 A pesar de la experiencia del equipo y su cercanía con el cliente, el proceso comercial presenta limitaciones importantes:
-
-"La clínica me pidió tres concentradores de oxígeno y les aseguré la entrega en 48 horas. En realidad, no teníamos ninguno disponible en el país y tuve que reprogramar todo el pedido.
-
-Perdimos la venta y la confianza.”
-
-— Representante comercial de MediSupply, Ecuador
 
 Solo un 35% de los comerciales tiene acceso actualizado al inventario en el momento de la visita, lo que genera promesas incumplidas y pérdida de confianza.
 
@@ -227,19 +184,18 @@ El equipo no cuenta con una herramienta que integre alertas sanitarias, pronóst
 
 Información valiosa capturada en campo (comentarios de médicos, patrones de uso, preferencias institucionales) no se sistematiza ni se retroalimenta al área de compras o logística.
 
-Universidad de los Andes – Departamento de Sistemas y Computación
+"La clínica me pidió tres concentradores de oxígeno y les aseguré la entrega en 48 horas. En realidad, no teníamos ninguno disponible en el país y tuve que reprogramar todo el pedido.
+
+Perdimos la venta y la confianza.”
+
+— Representante comercial de MediSupply, Ecuador
 
 
 ---
 
-
 MediSupply
 
 Pese a su infraestructura robusta, el proceso logístico enfrenta desafíos que impactan la eficiencia operativa y los costos:
-
-"Un envío con vacunas contra el VPH estuvo 9 horas fuera del rango de temperatura y tuvimos que desechar 6,000 dosis. No tuvimos alertas tempranas ni trazabilidad del fallo.”
-
-— Director de Logística, MediSupply
 
 Falta de visibilidad en tiempo real del inventario, especialmente en lo relacionado con condiciones de almacenamiento, ubicación física en bodega y fechas críticas de vencimiento.
 
@@ -251,15 +207,9 @@ En promedio, el 8% de las entregas en zonas rurales o de difícil acceso debe re
 
 Las devoluciones por errores de surtido o condiciones no aceptables no se rastrean adecuadamente y muchas veces no se reintegran al sistema de inventario.
 
-Universidad de los Andes – Departamento de Sistemas y Computación
+"Un envío con vacunas contra el VPH estuvo 9 horas fuera del rango de temperatura y tuvimos que desechar 6,000 dosis. No tuvimos alertas tempranas ni trazabilidad del fallo.”
 
-
----
-
-
-
-
-Universidad de los Andes | Facultad de Ingeniería
+— Director de Logística, MediSupply
 
 # MediSupply
 
@@ -287,19 +237,11 @@ La dirección general de MediSupply ha trazado una hoja de ruta ambiciosa para l
 > 
 > — Director de Logística y Cadena de Frío
 
-Universidad de los Andes – Departamento de Sistemas y Computación
+
 
 
 
 ---
-
-
-
-
-Universidad de los Andes | Facultad de Ingeniería
-Colombia
-
-# MediSupply
 
 ## Crecimiento en Clientes Institucionales
 
@@ -337,14 +279,8 @@ Colombia
 
 - Incentivar el uso del canal digital con tiempos de respuesta más rápidos y disponibilidad 24/7.
 
-Universidad de los Andes - Departamento de Sistemas y Computación
-
-
 
 ---
-
-
-
 
 # MediSupply
 
@@ -377,7 +313,7 @@ Universidad de los Andes - Departamento de Sistemas y Computación
 > 
 > — Directora de Experiencia del Cliente
 
-Universidad de los Andes – Departamento de Sistemas y Computación
+
 
 
 ---
@@ -405,15 +341,7 @@ La solución tecnológica de MediSupply debe ser diseñada para operar en un ent
 
 Dado que el sistema soporta la cadena de suministro de insumos médicos, cualquier interrupción, error o latencia puede tener consecuencias clínicas, regulatorias y financieras significativas.
 
-Universidad de los Andes – Departamento de Sistemas y Computación
-
-
 ---
-
-
-
-
-Universidad de los Andes | Facultad de Ingeniería
 
 # MediSupply
 
@@ -439,13 +367,7 @@ Capacidad para actualizar condiciones legales y tributarias de un producto en un
 - Escalamiento en campañas o emergencias: hasta 400 pedidos/minuto durante 1 hora |
 | Consulta de estado de pedido por cliente institucional: respuesta en ≤ 1 segundo.                                                                           |
 
-
-Universidad de los Andes – Departamento de Sistemas y Computación
-
-
-
 ---
-
 
 MediSupply
 
@@ -463,7 +385,7 @@ El algoritmo de recomendación debe entregar la solución óptima de cumplimient
 
 Este módulo deberá permitirle al personal logístico ver el estado de preparación de pedidos, registrar entregas, devoluciones y rechazos con evidencia fotográfica y validar cumplimiento de las condiciones sanitarias y operativas.
 
-Universidad de los Andes – Departamento de Sistemas y Computación
+
 
 
 ---
@@ -495,11 +417,7 @@ Adicionalmente apoyar a los encargados de las bodegas con el control de lotes, f
 
 debe permitir la planeación y visualización de rutas de entrega con asignación automática de pedidos a vehículos, incluyendo la consulta en tiempo real del estado de cada camión y visualización en mapa con actualización cada 500 milisegundos.
 
-Universidad de los Andes – Departamento de Sistemas y Computación
-
-
 ---
-
 
 MediSupply
 
@@ -529,11 +447,7 @@ Durante una visita, se debe poder crear pedidos en línea, con consulta de inven
 
 Un vendedor debe poder visualizar el historial del cliente: productos más comprados, productos rechazados, frecuencia de compra y condiciones pactadas. Un vendedor puede realizar la captura de evidencia visual (fotos/videos) de la ubicación de equipos médicos, uso de productos o problemas reportados, para retroalimentar al área técnica y logística.
 
-Universidad de los Andes – Departamento de Sistemas y Computación
-
-
 ---
-
 
 MediSupply
 
@@ -553,11 +467,7 @@ Debe igualmente permitir la creación directa de pedidos por parte de clientes a
 
 Se debe poder visualizar el camión asignado para la entrega, con seguimiento en mapa y tiempo estimado de llegada. Así como consultar el historial de pedidos previos, con posibilidad de reordenar de forma rápida productos frecuentes. Finalmente se deben poder registrar devoluciones o no conformidades, incluyendo fotografías y comentarios detallados.
 
-Universidad de los Andes – Departamento de Sistemas y Computación
-
-
 ---
-
 
 MediSupply
 # Objetivos de la App Móvil
@@ -581,12 +491,7 @@ Un algoritmo de recomendación que sugiera productos complementarios o alternati
 - Capacidad para capturar evidencia visual (fotos/videos) de la correcta utilización de los dispositivos, y retroalimentar esta información al área técnica.
 - Un módulo que permita al cliente (hospital o laboratorio) registrar directamente pedidos, consultar su estado y conocer la trazabilidad de la entrega, sin necesidad de contacto con un asesor.
 
-Universidad de los Andes – Departamento de Sistemas y Computación
-
-
 ---
-
-
 
 MediSupply
 
@@ -614,11 +519,7 @@ Conectividad con el módulo móvil, sensores de monitoreo de temperatura (IoT), 
 
 Cifrado de datos sensibles, autenticación multifactor, trazabilidad de movimientos y validación de integridad de datos.
 
-Universidad de los Andes – Departamento de Sistemas y Computación
-
-
 ---
-
 
 MediSupply
 
@@ -642,12 +543,7 @@ Toda la solución (aplicativo web, API, base de datos y aplicación móvil) debe
 
 Los módulos de consulta y creación de pedidos deben tener tolerancia a fallos y resiliencia a caídas parciales (por ejemplo, una bodega puede estar fuera de línea sin afectar todo el sistema).
 
-Universidad de los Andes – Departamento de Sistemas y Computación
-
-
 ---
-
-
 
 MediSupply
 
@@ -676,12 +572,7 @@ Se deben documentar interfaces de integración con módulos externos (sistemas r
 - SQL Injection
 - directory traversal
 
-Universidad de los Andes – Departamento de Sistemas y Computación
-
-
 ---
-
-
 
 # MediSupply
 
@@ -697,12 +588,7 @@ El recaudo de dinero proveniente de inversión de riesgo depende de mostrar un p
 
 El equipo de trabajo junto con el cliente, decidirán las funcionalidades más convenientes para desarrollar en el prototipo, aprovechando al máximo la capacidad de trabajo de los 4 integrantes del grupo.
 
-Universidad de los Andes – Departamento de Sistemas y Computación
-
-
 ---
-
-
 
 MediSupply    Evidencias
 
@@ -744,4 +630,4 @@ El producto debe mostrar implementaciones que impliquen el uso de tácticas para
 - Consulta de los estados de los pedidos
 - Consulta de las entregas programadas
 
-Universidad de los Andes – Departamento de Sistemas y Computación
+
