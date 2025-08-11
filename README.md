@@ -45,18 +45,18 @@ MediSupplyG4/
 
 ### Backend
 - **Framework**: Python Flask
-- **Base de Datos**: PostgreSQL/MySQL
+- **Base de Datos**: PostgreSQL/MySQL/RDS (Pendeinte por definir)
 - **Autenticación**: JWT (JSON Web Tokens)
 - **APIs**: RESTful APIs con documentación Swagger
 
 ### Frontend Web
-- **Framework**: React.js
+- **Framework**: React.jsx + VUE
 - **Estado**: Redux/Context API
 - **UI**: Material-UI o Ant Design
 - **Internacionalización**: i18next
 
 ### Aplicación Móvil
-- **Framework**: React Native
+- **Framework**: React Native + EXPO
 - **Plataformas**: Android e iOS
 - **Navegación**: React Navigation
 - **Estado**: Redux Toolkit
@@ -65,13 +65,13 @@ MediSupplyG4/
 - **Cloud**: AWS (Amazon Web Services)
 - **Contenedores**: Docker
 - **CI/CD**: GitHub Actions
-- **Monitoreo**: CloudWatch, Sentry
+- **Monitoreo**: CloudWatch, Sentry (Pendente por definir)
 
 ### Calidad y Testing
 - **Backend**: pytest, coverage
 - **Frontend**: Jest, React Testing Library
 - **Móvil**: Jest, Detox
-- **E2E**: Cypress, Appium
+- **E2E**: Cypress, Appium (Pendeinte por definir)
 
 ## Enlaces Importantes
 
