@@ -17,32 +17,7 @@ MediSupply es una empresa multinacional dedicada a la distribución de insumos m
 
 ```
 MediSupplyG4/
-├── DocumentacionProyecto/         # Documentación del proyecto
-│   ├── 00-ANALISIS-PIDE-SOLU-PLAN-ORDEN.md
-│   ├── 00-ESTADO-ACTUAL-PROYECTO.md
-│   ├── 01-Planificacion/          # Documentos de planificación del proyecto
-│   │   ├── 01-Acta-Constitucion.md
-│   │   ├── 02-Epicas-Features.md
-│   │   ├── 03-Planificacion-Sprints.md
-│   │   └── 04-Historias-Usuario-Detalladas.md
-│   ├── 02-Arquitectura/           # Documentos de arquitectura del sistema
-│   │   ├── 01-Documento-Alcance.md
-│   │   ├── 02-Hoja-Trabajo-Objetivos-Restricciones.md
-│   │   ├── 03-Estrategia-Pruebas.md
-│   │   ├── 04-Vision-Arquitectura.md
-│   │   ├── 05-Escenarios-Calidad.md
-│   │   ├── 06-Frameworks-Ambientes.md
-│   │   ├── 07-Patrones-Diseno.md
-│   │   ├── 08-Experimentos-Arquitectura.md
-│   │   └── 09-Refinamiento-Arquitectura.md
-│   ├── 03-VALIDACION-RUBRICA.md
-│   ├── 04-Gestion/                # Gestión del proyecto
-│   │   ├── 01-Tablero-Proyecto.md
-│   │   ├── 02-Wiki-Estructura.md
-│   │   └── Checklist-Actualizacion-Board-Semana3.md
-│   ├── 05-RIESGOS-DECISIONES-ASR.md
-│   ├── 06-PROXIMOS-PASOS.md
-│   └── 07-CHECKLIST-SEMANA-ACTUAL.md
+├── 
 ├── wiki/                          # Wiki del proyecto (submódulo Git)
 │   └── MediSupplyG4.wiki/        # Contenido de la wiki
 │       ├── Home.md
@@ -235,4 +210,5 @@ git diff --submodule
 ---
 
 **Última actualización**: Semana 2 - Proyecto MISW4501-202514
+
 
