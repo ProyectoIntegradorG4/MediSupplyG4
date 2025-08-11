@@ -145,6 +145,81 @@ git submodule update --init --recursive
 git submodule update --remote
 ```
 
+## Flujo de Trabajo con Git
+
+### Hacer cambios en el repositorio principal:
+```bash
+# 1. Verificar estado del repositorio
+git status
+
+# 2. Agregar cambios
+git add .
+
+# 3. Hacer commit
+git commit -m "Descripción de los cambios realizados"
+
+# 4. Subir cambios
+git push origin main
+```
+
+### Hacer cambios en la wiki (submódulo):
+```bash
+# 1. Navegar al directorio de la wiki
+cd wiki/MediSupplyG4.wiki
+
+# 2. Verificar estado
+git status
+
+# 3. Agregar cambios
+git add .
+
+# 4. Hacer commit
+git commit -m "Actualización de la wiki: descripción de cambios"
+
+# 5. Subir cambios de la wiki
+git push
+
+# 6. Volver al directorio principal
+cd ../..
+
+# 7. Actualizar la referencia del submódulo en el repo principal
+git add wiki
+git commit -m "Actualizar referencia del submódulo wiki"
+git push
+```
+
+### Flujo completo para cambios en ambos repositorios:
+```bash
+# Si haces cambios en ambos repositorios, sigue este orden:
+
+# 1. Primero actualiza la wiki
+cd wiki/MediSupplyG4.wiki
+git add .
+git commit -m "Cambios en la wiki"
+git push
+cd ../..
+
+# 2. Luego actualiza el repositorio principal
+git add .
+git commit -m "Cambios en el proyecto principal + actualización de wiki"
+git push origin main
+```
+
+### Comandos útiles para gestión de submódulos:
+```bash
+# Ver estado de todos los submódulos
+git submodule status
+
+# Inicializar submódulos si no están configurados
+git submodule init
+
+# Actualizar submódulos a la última versión
+git submodule update --remote
+
+# Ver diferencias en submódulos
+git diff --submodule
+```
+
 ## Entregables de la Semana 2
 
 ### ✅ Completados
