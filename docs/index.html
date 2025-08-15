@@ -62,12 +62,12 @@
 </head>
 <body>
     <div class="header">
-        <h1>🎯 MediSupply - Estrategia de Pruebas</h1>
+        <h1>MediSupply - Estrategia de Pruebas</h1>
     </div>
     
     <div id="pdf-container">
         <div class="loading">
-            📄 Cargando documento PDF...
+            Cargando documento PDF...
         </div>
     </div>
 
@@ -102,7 +102,7 @@
                 console.error('Error cargando PDF:', error);
                 container.innerHTML = `
                     <div class="error">
-                        ❌ Error cargando el PDF: ${error.message}<br>
+                        Error cargando el PDF: ${error.message}<br>
                         <small>Verifica que el archivo 'pdfs/estrategia-pruebas.pdf' existe</small>
                     </div>
                 `;
@@ -146,7 +146,7 @@
                 console.error(`Error renderizando página ${pageNum}:`, error);
                 const errorDiv = document.createElement('div');
                 errorDiv.className = 'error';
-                errorDiv.innerHTML = `❌ Error renderizando página ${pageNum}`;
+                errorDiv.innerHTML = `Error renderizando página ${pageNum}`;
                 container.appendChild(errorDiv);
             }
         }
