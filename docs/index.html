@@ -3,77 +3,156 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MediSupply - Documentación</title>
+    <title>MediSupply - Visualizador PDF</title>
     <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            margin: 40px; 
-            background: #f6f8fa;
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
         }
-        .container { 
-            max-width: 1200px; 
-            margin: 0 auto; 
-            background: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .pdf-viewer { 
-            width: 100%; 
-            height: 800px; 
-            border: 1px solid #ddd; 
-            border-radius: 4px;
-        }
-        .nav-menu {
+        
+        .header {
             background: #0366d6;
             color: white;
             padding: 15px;
-            margin: -30px -30px 30px -30px;
-            border-radius: 8px 8px 0 0;
+            margin: -20px -20px 20px -20px;
+            text-align: center;
         }
-        .nav-menu a {
-            color: white;
-            text-decoration: none;
-            margin-right: 20px;
-            font-weight: bold;
+        
+        #pdf-container {
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-        .nav-menu a:hover {
-            text-decoration: underline;
+        
+        .page-canvas {
+            display: block;
+            margin: 20px auto;
+            border: 1px solid #ddd;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            max-width: 100%;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 4px;
+            text-align: center;
+        }
+        
+        .page-info {
+            text-align: center;
+            margin: 10px 0;
+            color: #666;
+            font-size: 14px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <nav class="nav-menu">
-            <h1 style="margin: 0; display: inline;">MediSupply - Documentación</h1>
-            <div style="float: right;">
-                <a href="#estrategia">Estrategia Pruebas</a>
-              <!--  <a href="#arquitectura">Arquitectura</a> -->
-                <a href="https://github.com/ProyectoIntegradorG4/MediSupplyG4/wiki">Wiki</a>
-            </div>
-        </nav>
-        
-        <h2 id="estrategia">Estrategia de Pruebas</h2>
-        <object data="pdf/estrategia-pruebas.pdf" 
-                class="pdf-viewer" 
-                type="application/pdf">
-            <p>Tu navegador no soporta visualización de PDFs. 
-               <a href="pdf/EstrategiaPruebas.pdf" target="_blank">
-                  Descargar PDF
-               </a>
-            </p>
-        </object>
-        
-    <!--    <h2 id="arquitectura">Arquitectura del Sistema</h2>
-        <object data="pdfs/arquitectura.pdf" 
-                class="pdf-viewer" 
-                type="application/pdf">
-            <p>Tu navegador no soporta visualización de PDFs. 
-               <a href="pdfs/arquitectura.pdf" target="_blank">
-                  Descargar PDF
-               </a>
-            </p>
-        </object> -->
+    <div class="header">
+        <h1>🎯 MediSupply - Estrategia de Pruebas</h1>
     </div>
+    
+    <div id="pdf-container">
+        <div class="loading">
+            📄 Cargando documento PDF...
+        </div>
+    </div>
+
+    <!-- PDF.js Core -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
+    
+    <script>
+        // Configurar PDF.js
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js';
+        
+        const pdfUrl = 'pdf/EstrategiaPruebas.pdf';
+        const container = document.getElementById('pdf-container');
+        
+        // Función para renderizar el PDF
+        async function loadPDF() {
+            try {
+                console.log('Iniciando carga del PDF...');
+                
+                // Cargar el documento PDF
+                const pdf = await pdfjsLib.getDocument(pdfUrl).promise;
+                console.log(`PDF cargado. Páginas: ${pdf.numPages}`);
+                
+                // Limpiar contenedor
+                container.innerHTML = '';
+                
+                // Renderizar cada página
+                for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                    await renderPage(pdf, pageNum);
+                }
+                
+            } catch (error) {
+                console.error('Error cargando PDF:', error);
+                container.innerHTML = `
+                    <div class="error">
+                        ❌ Error cargando el PDF: ${error.message}<br>
+                        <small>Verifica que el archivo 'pdfs/estrategia-pruebas.pdf' existe</small>
+                    </div>
+                `;
+            }
+        }
+        
+        // Función para renderizar una página individual
+        async function renderPage(pdf, pageNum) {
+            try {
+                const page = await pdf.getPage(pageNum);
+                
+                // Configurar viewport (escala 1.5 para buena calidad)
+                const viewport = page.getViewport({ scale: 1.5 });
+                
+                // Crear canvas
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+                canvas.className = 'page-canvas';
+                
+                // Información de página
+                const pageInfo = document.createElement('div');
+                pageInfo.className = 'page-info';
+                pageInfo.textContent = `Página ${pageNum} de ${pdf.numPages}`;
+                
+                // Agregar al contenedor
+                container.appendChild(pageInfo);
+                container.appendChild(canvas);
+                
+                // Renderizar página en canvas
+                const renderContext = {
+                    canvasContext: context,
+                    viewport: viewport
+                };
+                
+                await page.render(renderContext).promise;
+                console.log(`Página ${pageNum} renderizada`);
+                
+            } catch (error) {
+                console.error(`Error renderizando página ${pageNum}:`, error);
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error';
+                errorDiv.innerHTML = `❌ Error renderizando página ${pageNum}`;
+                container.appendChild(errorDiv);
+            }
+        }
+        
+        // Iniciar carga cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', loadPDF);
+    </script>
 </body>
 </html>
