@@ -1,0 +1,612 @@
+@startuml ModeloDatos
+!theme aws-orange
+skinparam backgroundColor transparent
+skinparam maxMessageSize 300
+skinparam dpi 150
+skinparam shadowing false
+!define RECTANGLE
+skinparam linetype ortho
+
+' Forzar color negro para texto de atributos
+skinparam classAttributeFontColor Black
+skinparam classAttributeIconSize 0
+
+' Configuración de estereotipos UML para entidades de datos
+skinparam class<<aggregate-root>> {
+    BackgroundColor LightBlue
+    FontColor Black
+    BorderColor DarkBlue
+    BorderThickness 3
+}
+skinparam class<<entity>> {
+    BackgroundColor LightGreen
+    FontColor Black
+    BorderColor DarkGreen
+}
+skinparam class<<value-object>> {
+    BackgroundColor LightYellow
+    FontColor Black
+    BorderColor Orange
+}
+skinparam class<<event-store>> {
+    BackgroundColor LightPink
+    FontColor Black
+    BorderColor DeepPink
+}
+skinparam class<<read-model>> {
+    BackgroundColor LightCyan
+    FontColor Black
+    BorderColor DarkCyan
+}
+skinparam class<<cache-model>> {
+    BackgroundColor Wheat
+    FontColor Black
+    BorderColor Chocolate
+}
+
+' ===== VALUE OBJECTS UML =====
+package "Valores de Objetos" as value_objects {
+    class Money <<value-object>> {
+        + amount: Real
+        + currency: MonedaEnum
+        --Operaciones--
+        + add(other: Money): Money
+        + multiply(factor: Real): Money
+        + convertTo(currency: MonedaEnum): Money
+    }
+    
+    enum RolEnum <<enumeration>> {
+        ADMIN
+        VENDEDOR
+        CLIENTE
+    }
+    
+    enum EstadoEnum <<enumeration>> {
+        ACTIVO
+        INACTIVO
+        BLOQUEADO
+    }
+    
+    enum PaisEnum <<enumeration>> {
+        COLOMBIA
+        PERU
+        ECUADOR
+        MEXICO
+    }
+    
+    enum MonedaEnum <<enumeration>> {
+        COP
+        PEN
+        USD
+        MXN
+    }
+    
+    enum TipoDocumentoEnum <<enumeration>> {
+        CEDULA
+        PASAPORTE
+        RUC
+    }
+    
+    enum GeneroEnum <<enumeration>> {
+        MASCULINO
+        FEMENINO
+        OTRO
+    }
+    
+    enum FormaEnum <<enumeration>> {
+        TABLETA
+        CAPSULA
+        JARABE
+        INYECTABLE
+    }
+    
+    enum EstadoProductoEnum <<enumeration>> {
+        ACTIVO
+        INACTIVO
+        DESCONTINUADO
+    }
+    
+    enum NivelRiesgoEnum <<enumeration>> {
+        BAJO
+        MEDIO
+        ALTO
+    }
+    
+    enum EstadoLoteEnum <<enumeration>> {
+        BUENO
+        PROXIMO_VENCER
+        VENCIDO
+        CUARENTENA
+    }
+}
+
+' ===== DOMINIO DE AUTENTICACIÓN Y USUARIOS =====
+package "Dominio de Usuarios" as user_domain {
+    class Usuario <<aggregate-root>> {
+        --Atributos--
+        + usuarioId: String {id}
+        + email: String {unique}
+        + passwordHash: String
+        + rol: RolEnum
+        + estado: EstadoEnum
+        + pais: PaisEnum
+        + createdAt: DateTime
+        + updatedAt: DateTime
+        + version: Long
+        --Operaciones--
+        + authenticate(password: String): Boolean
+        + changePassword(newPassword: String): void
+        + assignRole(role: RolEnum): void
+        + activateUser(): void
+        + deactivateUser(): void
+    }
+    
+    class PerfilUsuario <<entity>> {
+        --Atributos--
+        + perfilId: String {id}
+        + usuarioId: String
+        + nombre: String
+        + apellido: String
+        + telefono: String
+        + documentoIdentidad: String
+        + tipoDocumento: TipoDocumentoEnum
+        + direccion: String
+        + ciudad: String
+        + departamento: String
+        + codigoPostal: String
+        + fechaNacimiento: Date
+        + genero: GeneroEnum
+        + preferenciaIdioma: String
+        + timezone: String
+        + createdAt: DateTime
+        + updatedAt: DateTime
+    }
+    
+    class SesionUsuario <<cache-model>> {
+        --Atributos Cache--
+        + sessionToken: String {id}
+        + usuarioId: String
+        + ipAddress: String
+        + userAgent: String
+        + createdAt: DateTime
+        + expiresAt: DateTime
+        + refreshToken: String
+        + permissions: Set<String>
+        + lastActivity: DateTime
+        {ttl = 24 hours}
+    }
+    
+    Usuario ||--|| PerfilUsuario : "perfil"
+    Usuario ||--o{ SesionUsuario : "sesiones"
+}
+
+' ===== DOMINIO DE PRODUCTOS E INVENTARIO =====
+package "Dominio de Productos" as product_domain {
+    class Producto <<aggregate-root>> {
+        --Atributos--
+        + productoId: String {id}
+        + codigoBarras: String {unique}
+        + nombre: String
+        + descripcion: String
+        + categoriaId: String
+        + subcategoria: String
+        + laboratorio: String
+        + principioActivo: String
+        + concentracion: String
+        + formaFarmaceutica: FormaEnum
+        + registroSanitario: String
+        + codigoAtc: String
+        + requierePrescripcion: Boolean
+        + condicionesAlmacenamiento: String
+        + vidaUtilMeses: Integer
+        + precioUnitario: Money
+        + moneda: MonedaEnum
+        + estado: EstadoProductoEnum
+        + createdAt: DateTime
+        + updatedAt: DateTime
+        + version: Long
+        --Operaciones--
+        + updatePrice(newPrice: Money): void
+        + changeStatus(status: EstadoProductoEnum): void
+        + validateRegulations(): Boolean
+    }
+    
+    class CategoriaProducto <<entity>> {
+        --Atributos--
+        + categoriaId: String {id}
+        + nombre: String
+        + descripcion: String
+        + categoriaPadreId: String
+        + codigoClasificacion: String
+        + requiereCadenaFrio: Boolean
+        + nivelRiesgo: NivelRiesgoEnum
+        + createdAt: DateTime
+    }
+    
+    class InventarioProducto <<aggregate-root>> {
+        --Atributos--
+        + inventarioId: String {id}
+        + productoId: String
+        + bodegaId: String
+        + cantidadDisponible: Integer
+        + cantidadReservada: Integer
+        + cantidadMinima: Integer
+        + cantidadMaxima: Integer
+        + lote: String
+        + fechaVencimiento: Date
+        + temperaturaActual: Real
+        + humedadActual: Real
+        + ubicacionFisica: String
+        + estadoLote: EstadoLoteEnum
+        + updatedAt: DateTime
+        + version: Long
+        --Operaciones--
+        + reserveStock(quantity: Integer): Boolean
+        + releaseStock(quantity: Integer): void
+        + updateQuantity(newQuantity: Integer): void
+        + checkExpiration(): Boolean
+    }
+    
+    class InventarioCache <<cache-model>> {
+        --Atributos Cache--
+        + cacheKey: String {id}
+        + productoId: String
+        + totalDisponible: Integer
+        + bodegasDisponibles: Set<String>
+        + precioActual: Money
+        + ultimaActualizacion: DateTime
+        {ttl = 300 seconds}
+    }
+    
+    Producto ||--|| CategoriaProducto : "categoria"
+    Producto ||--o{ InventarioProducto : "inventarios"
+    InventarioProducto ||--|| InventarioCache : "cache"
+}
+
+' ===== DOMINIO DE PEDIDOS Y VENTAS =====
+package "Dominio de Pedidos" as order_domain {
+    class Pedido <<aggregate-root>> {
+        --PostgreSQL Write Store--
+        + pedido_id: UUID <<PK>>
+        + numero_pedido: VARCHAR(50) <<UK>>
+        + cliente_id: UUID <<FK>>
+        + vendedor_id: UUID <<FK>>
+        + tipo_pedido: ENUM('normal','urgente','programado')
+        + estado: ENUM('creado','confirmado','procesando','empacado','enviado','entregado','cancelado')
+        + subtotal: DECIMAL(12,2)
+        + impuestos: DECIMAL(12,2)
+        + descuentos: DECIMAL(12,2)
+        + total: DECIMAL(12,2)
+        + moneda: ENUM('COP','PEN','USD','MXN')
+        + direccion_entrega: TEXT
+        + fecha_estimada_entrega: TIMESTAMP
+        + observaciones: TEXT
+        + created_at: TIMESTAMP
+        + updated_at: TIMESTAMP
+        + version: BIGINT
+        --
+        + addItem(producto, cantidad): Void
+        + removeItem(itemId): Void
+        + calculateTotal(): Decimal
+        + changeStatus(newStatus): Void
+        + cancel(reason): Void
+    }
+    
+    class ItemPedido <<entity>> {
+        + item_id: UUID <<PK>>
+        + pedido_id: UUID <<FK>>
+        + producto_id: UUID <<FK>>
+        + cantidad_solicitada: INTEGER
+        + cantidad_confirmada: INTEGER
+        + precio_unitario: DECIMAL(10,2)
+        + descuento_porcentaje: DECIMAL(5,2)
+        + subtotal: DECIMAL(12,2)
+        + lote_asignado: VARCHAR(100)
+        + fecha_vencimiento_lote: DATE
+        + estado_item: ENUM('pendiente','confirmado','empacado','cancelado')
+        + observaciones: TEXT
+    }
+    
+    class EstadoPedidoCache <<cache-model>> {
+        --Redis Cache Store--
+        + pedido_id: UUID <<PK>>
+        + estado_actual: STRING
+        + porcentaje_completado: INTEGER
+        + ultima_actualizacion: TIMESTAMP
+        + ubicacion_actual: STRING
+        + estimacion_entrega: TIMESTAMP
+        --TTL: 1 hour--
+    }
+    
+    Pedido ||--o{ ItemPedido : "1:N items"
+    Pedido ||--|| EstadoPedidoCache : "1:1 estado"
+}
+
+' ===== DOMINIO DE PROVEEDORES Y LOGÍSTICA =====
+package "Dominio de Proveedores" as supplier_domain {
+    class Proveedor <<aggregate-root>> {
+        --PostgreSQL Write Store--
+        + proveedor_id: UUID <<PK>>
+        + razon_social: VARCHAR(255)
+        + nit: VARCHAR(50) <<UK>>
+        + tipo_proveedor: ENUM('laboratorio','distribuidor','importador')
+        + email: VARCHAR(255)
+        + telefono: VARCHAR(20)
+        + direccion: TEXT
+        + ciudad: VARCHAR(100)
+        + pais: ENUM('colombia','peru','ecuador','mexico')
+        + certificaciones: TEXT[]
+        + estado: ENUM('activo','inactivo','suspendido')
+        + calificacion: DECIMAL(3,2)
+        + tiempo_entrega_promedio: INTEGER
+        + created_at: TIMESTAMP
+        + updated_at: TIMESTAMP
+        + version: BIGINT
+        --
+        + updateRating(newRating): Void
+        + addCertification(cert): Void
+        + changeStatus(status): Void
+    }
+    
+    class RutaEntrega <<entity>> {
+        + ruta_id: UUID <<PK>>
+        + conductor_id: UUID <<FK>>
+        + vehiculo_id: UUID <<FK>>
+        + fecha_programada: DATE
+        + hora_inicio: TIME
+        + hora_fin_estimada: TIME
+        + estado_ruta: ENUM('programada','en_curso','completada','cancelada')
+        + distancia_total_km: DECIMAL(8,2)
+        + tiempo_estimado_minutos: INTEGER
+        + temperatura_requerida: DECIMAL(5,2)
+        + observaciones: TEXT
+        + created_at: TIMESTAMP
+    }
+    
+    class VisitaComercial <<aggregate-root>> {
+        --PostgreSQL Write Store--
+        + visita_id: UUID <<PK>>
+        + vendedor_id: UUID <<FK>>
+        + cliente_id: UUID <<FK>>
+        + tipo_visita: ENUM('comercial','tecnica','seguimiento','cobranza')
+        + estado: ENUM('programada','en_curso','completada','cancelada')
+        + fecha_programada: TIMESTAMP
+        + fecha_inicio: TIMESTAMP
+        + fecha_fin: TIMESTAMP
+        + latitud: DECIMAL(10,8)
+        + longitud: DECIMAL(11,8)
+        + observaciones: TEXT
+        + productos_mostrados: UUID[]
+        + muestras_entregadas: JSONB
+        + pedidos_generados: UUID[]
+        + proxima_visita: TIMESTAMP
+        + created_at: TIMESTAMP
+        + version: BIGINT
+        --
+        + startVisit(location): Void
+        + endVisit(observations): Void
+        + addSample(product, quantity): Void
+        + scheduleNextVisit(date): Void
+    }
+}
+
+' ===== EVENT STORE PARA EVENT SOURCING =====
+package "Event Store" as event_store {
+    class EventStream <<event-store>> {
+        --PostgreSQL Event Store--
+        + stream_id: UUID <<PK>>
+        + aggregate_id: UUID
+        + aggregate_type: VARCHAR(100)
+        + event_number: BIGINT
+        + event_type: VARCHAR(255)
+        + event_data: JSONB
+        + metadata: JSONB
+        + created_at: TIMESTAMP
+        + correlation_id: UUID
+        + causation_id: UUID
+        --Indices--
+        + idx_aggregate_id_event_number
+        + idx_event_type
+        + idx_created_at
+        --
+        + appendEvent(event): Void
+        + getEvents(aggregateId): List<Event>
+        + getEventsAfter(position): List<Event>
+    }
+    
+    class EventSnapshot <<event-store>> {
+        + snapshot_id: UUID <<PK>>
+        + aggregate_id: UUID
+        + aggregate_type: VARCHAR(100)
+        + version: BIGINT
+        + snapshot_data: JSONB
+        + created_at: TIMESTAMP
+        --
+        + saveSnapshot(aggregateId, data): Void
+        + getSnapshot(aggregateId): Snapshot
+    }
+    
+    class EventProjection <<read-model>> {
+        --PostgreSQL Read Store--
+        + projection_id: UUID <<PK>>
+        + projection_name: VARCHAR(255)
+        + last_processed_position: BIGINT
+        + projection_data: JSONB
+        + updated_at: TIMESTAMP
+        --
+        + updateProjection(events): Void
+        + getProjectionData(): JSONB
+        + resetProjection(): Void
+    }
+    
+    EventStream ||--o{ EventSnapshot : "1:N snapshots"
+    EventStream ||--o{ EventProjection : "1:N proyecciones"
+}
+
+' ===== MODELOS DE LECTURA CQRS =====
+package "Read Models - CQRS" as read_models {
+    class ProductoCatalogo <<read-model>> {
+        --PostgreSQL Read Store--
+        + catalogo_id: UUID <<PK>>
+        + producto_id: UUID
+        + nombre_producto: VARCHAR(255)
+        + categoria: VARCHAR(255)
+        + precio_actual: DECIMAL(10,2)
+        + disponibilidad_total: INTEGER
+        + laboratorio: VARCHAR(255)
+        + descripcion_comercial: TEXT
+        + imagen_url: VARCHAR(500)
+        + tags_busqueda: TEXT[]
+        + popularidad_score: DECIMAL(5,2)
+        + updated_at: TIMESTAMP
+        --Indices--
+        + idx_nombre_categoria
+        + idx_popularidad
+        + idx_tags_busqueda
+    }
+    
+    class ResumenVentas <<read-model>> {
+        --PostgreSQL Read Store--
+        + resumen_id: UUID <<PK>>
+        + periodo: DATE
+        + granularidad: ENUM('dia','semana','mes')
+        + vendedor_id: UUID
+        + total_ventas: DECIMAL(15,2)
+        + cantidad_pedidos: INTEGER
+        + productos_mas_vendidos: JSONB
+        + clientes_atendidos: INTEGER
+        + comision_generada: DECIMAL(12,2)
+        + meta_cumplida: BOOLEAN
+        + updated_at: TIMESTAMP
+        --Indices--
+        + idx_periodo_vendedor
+        + idx_granularidad
+    }
+    
+    class InventarioConsolidado <<read-model>> {
+        --PostgreSQL Read Store--
+        + consolidado_id: UUID <<PK>>
+        + producto_id: UUID
+        + total_disponible: INTEGER
+        + total_reservado: INTEGER
+        + valor_inventario: DECIMAL(15,2)
+        + bodegas_con_stock: INTEGER
+        + proximos_vencimientos: JSONB
+        + necesita_reorden: BOOLEAN
+        + updated_at: TIMESTAMP
+        --Indices--
+        + idx_producto_disponible
+        + idx_necesita_reorden
+    }
+}
+
+' ===== RELACIONES ENTRE DOMINIOS =====
+Usuario ||--o{ Pedido : "cliente"
+Usuario ||--o{ VisitaComercial : "vendedor"
+Usuario ||--o{ RutaEntrega : "conductor"
+Proveedor ||--o{ Producto : "proveedor"
+Pedido }o--o{ RutaEntrega : "incluye"
+VisitaComercial ||--o{ Pedido : "genera"
+
+' Relaciones Event Store
+Usuario ||--o{ EventStream : "eventos"
+Pedido ||--o{ EventStream : "eventos"
+InventarioProducto ||--o{ EventStream : "eventos"
+VisitaComercial ||--o{ EventStream : "eventos"
+
+' Relaciones Read Models
+Producto ||--|| ProductoCatalogo : "catalogo"
+Pedido ||--|| ResumenVentas : "resumen"
+InventarioProducto ||--|| InventarioConsolidado : "consolidado"
+
+' ===== ANOTACIONES DE DECISIONES ARQUITECTÓNICAS =====
+
+note top of Usuario
+**Patrón**: Aggregate Root + DDD
+**Justificación**: Consistencia transaccional
+en cambios de usuario y autenticación
+**ASR**: ASR-004 (Seguridad MFA)
+end note
+
+note right of SesionUsuario
+**Patrón**: Redis Cache + TTL
+**Justificación**: Sesiones distribuidas,
+invalidación automática por seguridad
+**ASR**: ASR-002 (Latencia <1s)
+end note
+
+note bottom of InventarioProducto
+**Patrón**: Aggregate Root + Optimistic Locking
+**Justificación**: Control de concurrencia
+para reservas simultáneas de stock
+**ASR**: ASR-002 + ASR-003 (Escalabilidad)
+end note
+
+note left of EventStream
+**Patrón**: Event Sourcing + CQRS
+**Justificación**: Auditoría completa,
+reconstrucción de estados, compliance
+**ASR**: ASR-006 (Confidencialidad)
+end note
+
+note bottom of Pedido
+**Patrón**: Saga Pattern + State Machine
+**Justificación**: Transacciones distribuidas
+con compensación automática
+**ASR**: ASR-001 (Disponibilidad)
+end note
+
+note right of ProductoCatalogo
+**Patrón**: CQRS Read Model + Denormalización
+**Justificación**: Consultas optimizadas,
+latencia <1s para búsquedas
+**ASR**: ASR-002 (Performance)
+end note
+
+note bottom of VisitaComercial
+**Patrón**: GPS + Event Sourcing
+**Justificación**: Trazabilidad completa
+de actividades comerciales
+**ASR**: ASR-005 (Integración Externa)
+end note
+
+note top of InventarioCache
+**Patrón**: Cache-Aside + Write-Through
+**Justificación**: Disponibilidad tiempo real
+de stock, TTL corto para consistencia
+**ASR**: ASR-002 (Latencia <500ms)
+end note
+
+' ===== CONVENCIONES DEL DIAGRAMA =====
+legend bottom right
+|= **Convenciones - Modelo UML de Datos** =|
+|**Elemento**|**Descripción**|**Notación**|
+|= **Estereotipos UML** =|
+|<<aggregate-root>>|Aggregate Root DDD|<back:LightBlue>Azul</back>|
+|<<entity>>|Entity Object|<back:LightGreen>Verde</back>|
+|<<value-object>>|Value Object|<back:LightYellow>Amarillo</back>|
+|<<enumeration>>|Enumeración UML|<back:LightYellow>Amarillo</back>|
+|<<read-model>>|Read Model CQRS|<back:LightCyan>Cian</back>|
+|<<cache-model>>|Cache Redis|<back:Wheat>Trigo</back>|
+|<<event-store>>|Event Sourcing|<back:LightPink>Rosa</back>|
+|= **Multiplicidad UML** =|
+|1|Exactamente uno|UML estándar|
+|0..1|Cero o uno|UML estándar|
+|0..*|Cero o muchos|UML estándar|
+|1..*|Uno o muchos|UML estándar|
+|= **Constraints UML** =|
+|{id}|Identificador único|{constraint}|
+|{unique}|Valor único|{constraint}|
+|{ttl}|Time to Live|{constraint}|
+|= **Tipos UML** =|
+|String|Cadena de texto|UML básico|
+|Integer|Número entero|UML básico|
+|Real|Número decimal|UML básico|
+|Boolean|Verdadero/Falso|UML básico|
+|DateTime|Fecha y hora|UML básico|
+|Date|Solo fecha|UML básico|
+|Money|Valor monetario|Value Object|
+|Set<T>|Conjunto tipado|UML colección|
+endlegend
+
+@enduml

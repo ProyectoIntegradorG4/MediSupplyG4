@@ -1,0 +1,301 @@
+@startuml ModeloNodos
+!theme aws-orange
+skinparam backgroundColor transparent
+skinparam maxMessageSize 200
+skinparam dpi 150
+skinparam shadowing false
+!define RECTANGLE
+skinparam linetype ortho
+
+' Configuraciones para evitar sobreposición de etiquetas
+skinparam minClassWidth 100
+skinparam nodesep 20
+skinparam ranksep 30
+skinparam PackagePadding 10
+skinparam noteTextAlignment left
+skinparam noteBorderThickness 1
+
+' Configuración de estereotipos UML para nodos de despliegue
+skinparam node<<region>> {
+    BackgroundColor LightBlue
+    FontColor Black
+    BorderColor DarkBlue
+}
+skinparam node<<availability-zone>> {
+    BackgroundColor LightGreen
+    FontColor Black
+    BorderColor DarkGreen
+}
+skinparam node<<compute-node>> {
+    BackgroundColor Orange
+    FontColor Black
+    BorderColor DarkOrange
+}
+skinparam node<<database-node>> {
+    BackgroundColor LightCyan
+    FontColor Black
+    BorderColor DarkCyan
+}
+skinparam node<<cache-node>> {
+    BackgroundColor Yellow
+    FontColor Black
+    BorderColor Goldenrod
+}
+skinparam node<<messaging-node>> {
+    BackgroundColor Pink
+    FontColor Black
+    BorderColor DeepPink
+}
+skinparam node<<cdn-edge>> {
+    BackgroundColor Wheat
+    FontColor Black
+    BorderColor Chocolate
+}
+skinparam node<<client-device>> {
+    BackgroundColor Lavender
+    FontColor Black
+    BorderColor Purple
+}
+
+skinparam artifact<<container>> {
+    BackgroundColor LightSteelBlue
+    FontColor Black
+}
+skinparam artifact<<database>> {
+    BackgroundColor AliceBlue
+    FontColor Black
+}
+skinparam artifact<<queue>> {
+    BackgroundColor MistyRose
+    FontColor Black
+}
+
+' ===== NODOS DE CLIENTE =====
+node "Dispositivos Cliente" <<client-device>> as client_devices {
+    artifact "Aplicación Web React" <<container>> as web_app
+    artifact "Aplicación Móvil React Native" <<container>> as mobile_app
+    
+    note right of web_app
+    **Aplicación Web SPA**
+    React 18 + TypeScript
+    Progressive Web App
+    Offline-first Strategy
+    end note
+    
+    note right of mobile_app
+    **Aplicación Móvil Nativa**
+    React Native 0.72 + Expo
+    AsyncStorage + SQLite
+    GPS + Cámara Integration
+    end note
+}
+
+' ===== REGIÓN AWS PRINCIPAL =====
+node "AWS Región us-east-1" <<region>> as primary_region {
+    
+    ' ===== ZONA DE DISPONIBILIDAD A =====
+    node "Zona de Disponibilidad us-east-1a" <<availability-zone>> as az_1a {
+        
+        node "AWS ECS Fargate Cluster A" <<compute-node>> as fargate_cluster_a {
+            artifact "API Gateway Container" <<container>> as apigw_container_a
+            artifact "Auth Service Container" <<container>> as auth_container_a
+            artifact "Product Service Container" <<container>> as product_container_a
+            artifact "Order Service Container" <<container>> as order_container_a
+            artifact "Inventory Service Container" <<container>> as inventory_container_a
+            artifact "SAGA Orchestrator Container" <<container>> as saga_container_a
+        }
+        
+        node "AWS RDS PostgreSQL Primary" <<database-node>> as postgres_primary {
+            artifact "PostgreSQL 15.x Engine" <<database>> as postgres_engine_a
+            artifact "PgBouncer Connection Pool" <<container>> as pgbouncer_a
+        }
+        
+        node "AWS ElastiCache Redis Primary" <<cache-node>> as redis_primary {
+            artifact "Redis 7.x Cluster Mode" <<database>> as redis_engine_a
+        }
+        
+        node "AWS SQS/SNS Primary" <<messaging-node>> as messaging_primary {
+            artifact "Order Processing Queue" <<queue>> as order_queue_a
+            artifact "Inventory Update Queue" <<queue>> as inventory_queue_a
+            artifact "Notification Topic" <<queue>> as notification_topic_a
+            artifact "Dead Letter Queue" <<queue>> as dlq_a
+        }
+    }
+    
+    ' ===== ZONA DE DISPONIBILIDAD B =====
+    node "Zona de Disponibilidad us-east-1b" <<availability-zone>> as az_1b {
+        
+        node "AWS ECS Fargate Cluster B" <<compute-node>> as fargate_cluster_b {
+            artifact "Logistics Service Container" <<container>> as logistics_container_b
+            artifact "Route Optimizer Container" <<container>> as route_container_b
+            artifact "Tracking Service Container" <<container>> as tracking_container_b
+            artifact "Reporting Service Container" <<container>> as reporting_container_b
+            artifact "CRM Service Container" <<container>> as crm_container_b
+        }
+        
+        node "AWS RDS PostgreSQL Standby" <<database-node>> as postgres_standby {
+            artifact "PostgreSQL Standby Replica" <<database>> as postgres_engine_b
+        }
+        
+        node "AWS ElastiCache Redis Replica" <<cache-node>> as redis_replica {
+            artifact "Redis Replica Node" <<database>> as redis_engine_b
+        }
+        
+        node "AWS SQS/SNS Standby" <<messaging-node>> as messaging_standby {
+            artifact "SAGA Compensation Queue" <<queue>> as saga_queue_b
+            artifact "Analytics Events Queue" <<queue>> as analytics_queue_b
+        }
+    }
+    
+    ' ===== SERVICIOS REGIONALES =====
+    node "AWS Application Load Balancer" <<compute-node>> as alb {
+        artifact "Health Check Endpoint" <<container>> as health_check
+        artifact "SSL Termination" <<container>> as ssl_termination
+    }
+    
+    node "AWS API Gateway Regional" <<compute-node>> as api_gateway {
+        artifact "Rate Limiting Engine" <<container>> as rate_limiter
+        artifact "Authentication Validator" <<container>> as auth_validator
+        artifact "Request Router" <<container>> as request_router
+    }
+    
+    node "AWS S3 Multi-Region" <<database-node>> as s3_storage {
+        artifact "Document Repository" <<database>> as s3_documents
+        artifact "Static Assets CDN" <<database>> as s3_assets
+    }
+    
+    node "AWS CloudWatch/X-Ray" <<compute-node>> as observability {
+        artifact "Metrics Collector" <<container>> as metrics_collector
+        artifact "Distributed Tracing" <<container>> as xray_tracer
+        artifact "Log Aggregator" <<container>> as log_aggregator
+    }
+}
+
+' ===== SERVICIOS EXTERNOS =====
+node "Google Cloud Platform (Mock)" <<region>> as gcp_region {
+    node "Google Maps API Endpoint (Mock)" <<compute-node>> as maps_api {
+        artifact "Geocoding Service (Mock)" <<container>> as geocoding_svc
+        artifact "Routing Service (Mock)" <<container>> as routing_svc
+        artifact "Places API (Mock)" <<container>> as places_api
+    }
+}
+
+node "Servicios de Terceros (Mock)" <<region>> as third_party {
+    node "Proveedores DIAN/SUNAT (Mock)" <<compute-node>> as tax_services {
+        artifact "Validación Tributaria (Mock)" <<container>> as tax_validation
+    }
+}
+
+' ===== CONECTORES DE DESPLIEGUE CON PATRONES =====
+
+' Cliente -> Edge/CDN
+client_devices --> alb : "HTTPS/TLS 1.3"
+alb --> api_gateway : "HTTP/2"
+
+' API Gateway -> Microservicios
+api_gateway --> fargate_cluster_a : "HTTP/gRPC"
+api_gateway --> fargate_cluster_b : "HTTP/gRPC"
+
+' Microservicios -> Persistencia
+fargate_cluster_a --> postgres_primary : "PostgreSQL"
+fargate_cluster_b --> postgres_standby : "Read Replica"
+
+fargate_cluster_a --> redis_primary : "Redis Protocol"
+fargate_cluster_b --> redis_replica : "Redis Protocol"
+
+' Event-Driven Architecture
+fargate_cluster_a --> messaging_primary : "AWS SDK"
+fargate_cluster_b --> messaging_standby : "AWS SDK"
+
+' Multi-AZ Replication
+postgres_primary --> postgres_standby : "Sync Replication"
+redis_primary --> redis_replica : "Async Replication"
+
+' Integraciones Externas
+fargate_cluster_b --> maps_api : "HTTPS REST"
+fargate_cluster_a --> tax_services : "HTTPS SOAP"
+
+' Observabilidad
+fargate_cluster_a --> observability : "CloudWatch"
+fargate_cluster_b --> observability : "X-Ray SDK"
+
+' Storage
+fargate_cluster_a --> s3_storage : "S3 SDK"
+fargate_cluster_b --> s3_storage : "S3 SDK"
+
+' ===== ANOTACIONES DE DECISIONES ARQUITECTÓNICAS =====
+
+note as N1
+**Región Multi-AZ**
+Active-Standby Deployment
+Simplicidad operacional MVP
+ASR-001 (Disponibilidad 99.95%)
+end note
+N1 .. primary_region
+
+note as N2
+**ECS Fargate**
+Serverless Containers
+Auto-scaling + pay-per-use
+ASR-003 (Escalabilidad)
+end note
+N2 .. fargate_cluster_a
+
+note as N3
+**RDS Multi-AZ**
+Master-Slave Replication
+Failover <60s + ACID
+ASR-001 + ASR-006
+end note
+N3 .. postgres_primary
+
+note as N4
+**SQS + SNS**
+Event-Driven Architecture
+Desacoplamiento + DLQ SAGA
+ASR-001 + ASR-002
+end note
+N4 .. messaging_primary
+
+note as N5
+**API Gateway**
+Rate limiting + Auth
+Caching centralizado
+ASR-002 + ASR-004
+end note
+N5 .. api_gateway
+
+note as N6
+**ElastiCache Redis**
+Cache-Aside + Write-Through
+Latencia <1ms sesiones
+ASR-002 (Latencia <1s)
+end note
+N6 .. redis_primary
+
+' ===== CONVENCIONES UML =====
+legend bottom right
+**CONVENCIONES UML - MODELO DE NODOS**
+
+**Estereotipos de Nodos:**
+<back:LightBlue>  </back> <<region>> - Región AWS
+<back:LightGreen>  </back> <<availability-zone>> - Zona Disponibilidad
+<back:Orange>  </back> <<compute-node>> - Nodo Cómputo
+<back:LightCyan>  </back> <<database-node>> - Base Datos
+<back:Yellow>  </back> <<cache-node>> - Cache
+<back:Pink>  </back> <<messaging-node>> - Mensajería
+<back:Lavender>  </back> <<client-device>> - Dispositivo Cliente
+
+**Estereotipos de Artefactos:**
+<back:LightSteelBlue>  </back> <<container>> - Contenedor
+<back:AliceBlue>  </back> <<database>> - Engine BD
+<back:MistyRose>  </back> <<queue>> - Cola Mensajes
+
+**Patrones Implementados:**
+• Multi-AZ: Alta disponibilidad
+• Circuit Breaker: Tolerancia fallos
+• Event Sourcing: Auditoría completa
+• Cache-Aside: Optimización latencia
+end legend
+
+@enduml

@@ -1,0 +1,231 @@
+@startuml casosdeuso
+!theme aws-orange
+skinparam packageStyle rectangle
+skinparam backgroundColor transparent
+!define DIRECTION top to bottom direction
+
+' CONFIGURACIÓN DE COLORES POR TIPO DE ACTOR
+skinparam actor {
+    BackgroundColor<<mobile>> LightBlue
+    BorderColor<<mobile>> DarkBlue
+    FontColor<<mobile>> DarkBlue
+    BackgroundColor<<web>> LightGreen
+    BorderColor<<web>> DarkGreen
+    FontColor<<web>> DarkGreen
+    BackgroundColor<<admin>> LightYellow
+    BorderColor<<admin>> Orange
+    FontColor<<admin>> Orange
+    BackgroundColor<<external>> LightGray
+    BorderColor<<external>> DarkGray
+    FontColor<<external>> DarkGray
+}
+
+skinparam arrow {
+    Color<<mobile>> DarkBlue
+    Color<<web>> DarkGreen
+    Color<<admin>> Orange
+    Color<<external>> DarkGray
+}
+
+title Sistema MediSupply - Casos de Uso por Capas
+
+' ===== SISTEMAS EXTERNOS (SUPERIOR) =====
+package "SISTEMAS EXTERNOS" {
+    actor "Proveedores" as Proveedor <<external>>
+    actor "Sistema de Mapas" as Mapas <<external>>
+    actor "Sensores IoT" as IoT <<external>>
+}
+
+'=== SEPARADOR ===
+package " " as SEP1 {
+}
+
+' ===== CANAL MOVIL COMPLETO (ARRIBA) =====
+together {
+    package "ACTORES MOVILES" {
+        left to right direction
+        actor "Gerente de Cuenta" as GerenteCuenta <<mobile>>
+        actor "Cliente Institucional" as ClienteInst <<mobile>>
+    }
+    
+    package "APLICACION MOVIL" as MOBILE_APP {
+        left to right direction
+        rectangle "Autenticacion Movil" {
+            usecase "Login Movil" as UC_LOGIN_MOB
+            usecase "Registro Cliente" as UC_REGISTRO
+        }
+        
+        rectangle "Gestion Comercial Movil" {
+            usecase "Consultar Clientes" as UC_CLIENTES
+            usecase "Consultar Rutas" as UC_RUTAS
+            usecase "Registrar Visitas" as UC_VISITAS
+        }
+        
+        rectangle "Transacciones Moviles" {
+            usecase "Crear Pedidos" as UC_PEDIDOS_MOB
+            usecase "Consultar Inventario" as UC_INVENTARIO_MOB
+            usecase "Seguimiento Entregas" as UC_SEGUIMIENTO
+            usecase "Consultar Entregas Programadas" as UC_ENTREGAS_PROG
+        }
+        
+        rectangle "Procesamiento Multimedia" {
+            usecase "Cargar Evidencia Foto/Video" as UC_EVIDENCIA
+        }
+    }
+}
+
+'=== SEPARADOR ===
+package " " as SEP2 {
+}
+
+' ===== CANAL WEB COMPLETO (ABAJO) =====
+together {
+    package "ACTORES WEB" {
+        left to right direction
+        actor "Admin Compras" as AdminCompras <<web>>
+        actor "Admin Ventas" as AdminVentas <<web>>
+        actor "Supervisor Ventas" as SuperVentas <<web>>
+        actor "Supervisor Inventario" as SuperInventario <<web>>
+        actor "Supervisor Logistica" as SuperLogistica <<web>>
+        actor "Admin Sistema" as AdminSistema <<admin>>
+    }
+    
+    package "APLICACION WEB" as WEB_APP {
+        left to right direction
+        rectangle "Seguridad y Control" {
+            usecase "Autenticacion SSO" as UC_SSO
+            usecase "Autorizacion RBAC" as UC_RBAC
+        }
+        
+        rectangle "Gestion de Inventario" {
+            usecase "Gestion Proveedores" as UC_PROVEEDORES
+            usecase "Gestion Productos" as UC_PRODUCTOS
+            usecase "Carga Masiva" as UC_CARGA_MASIVA
+        }
+        
+        rectangle "Gestion Comercial Web" {
+            usecase "Registrar Vendedores" as UC_VENDEDORES
+            usecase "Gestionar Clientes" as UC_GESTION_CLIENTES
+            usecase "Planes de Venta" as UC_PLANES
+            usecase "Reportes Vendedores" as UC_REPORTES
+        }
+        
+        rectangle "Operaciones y Logistica" {
+            usecase "Control Inventario" as UC_INVENTARIO_WEB
+            usecase "Optimizacion Rutas" as UC_OPTIMIZACION
+        }
+    }
+}
+
+' ===== LAYOUT CONSTRAINTS VERTICAL =====
+SEP1 -[hidden]-> SEP2
+"ACTORES MOVILES" -[hidden]-> "ACTORES WEB"
+MOBILE_APP -[hidden]-> WEB_APP
+
+' ===== RELACIONES POR CAPAS =====
+
+' ACTORES MOVILES -> APLICACION MOVIL
+GerenteCuenta -[#DarkBlue]-> UC_LOGIN_MOB
+GerenteCuenta -[#DarkBlue]-> UC_CLIENTES
+GerenteCuenta -[#DarkBlue]-> UC_RUTAS
+GerenteCuenta -[#DarkBlue]-> UC_VISITAS
+GerenteCuenta -[#DarkBlue]-> UC_PEDIDOS_MOB
+
+ClienteInst -[#DarkBlue]-> UC_REGISTRO
+ClienteInst -[#DarkBlue]-> UC_PEDIDOS_MOB
+ClienteInst -[#DarkBlue]-> UC_INVENTARIO_MOB
+ClienteInst -[#DarkBlue]-> UC_SEGUIMIENTO
+ClienteInst -[#DarkBlue]-> UC_ENTREGAS_PROG
+
+GerenteCuenta -[#DarkBlue]-> UC_EVIDENCIA
+
+' ACTORES WEB -> APLICACION WEB
+AdminCompras -[#DarkGreen]-> UC_SSO
+AdminCompras -[#DarkGreen]-> UC_PROVEEDORES
+AdminCompras -[#DarkGreen]-> UC_PRODUCTOS
+AdminCompras -[#DarkGreen]-> UC_CARGA_MASIVA
+
+AdminVentas -[#DarkGreen]-> UC_SSO
+AdminVentas -[#DarkGreen]-> UC_VENDEDORES
+AdminVentas -[#DarkGreen]-> UC_GESTION_CLIENTES
+AdminVentas -[#DarkGreen]-> UC_PLANES
+
+SuperVentas -[#DarkGreen]-> UC_SSO
+SuperVentas -[#DarkGreen]-> UC_REPORTES
+
+SuperInventario -[#DarkGreen]-> UC_SSO
+SuperInventario -[#DarkGreen]-> UC_INVENTARIO_WEB
+
+SuperLogistica -[#DarkGreen]-> UC_SSO
+SuperLogistica -[#DarkGreen]-> UC_OPTIMIZACION
+
+AdminSistema -[#Orange]-> UC_RBAC
+
+' SISTEMAS EXTERNOS
+Proveedor -[#DarkGray]-> UC_PROVEEDORES
+Proveedor -[#DarkGray]-> UC_PRODUCTOS
+Mapas -[#DarkGray]-> UC_OPTIMIZACION
+IoT -[#DarkGray]-> UC_SEGUIMIENTO
+
+' ===== NOTAS ARQUITECTONICAS =====
+
+note top of MOBILE_APP
+**CANAL MOVIL**
+Usabilidad cross-platform
+Funcionalidad offline
+4 paises objetivo
+end note
+
+note bottom of WEB_APP
+**CANAL WEB**
+SSO empresarial
+99.95% horario comercial
+Regulacion medica regional
+end note
+
+note right of UC_PEDIDOS_MOB
+**ESCENARIO CRITICO:**
+Creación pedidos en línea
+Consulta inventario tiempo real
+Latencia <3s operaciones
+Disponibilidad 99.95%
+end note
+
+note right of UC_SSO
+**ESCENARIO CRITICO:**
+Autenticación y autorización
+100% validación privilegios
+Control acceso por roles
+Auditoría de accesos
+end note
+
+note right of UC_EVIDENCIA
+**PROCESAMIENTO MULTIMEDIA:**
+Carga evidencia foto/video
+Procesamiento multimedia
+Generación recomendaciones
+end note
+
+note left of UC_ENTREGAS_PROG
+**LOGISTICA AVANZADA:**
+Consulta entregas programadas
+Planificación temporal
+Visibilidad cadena suministro
+end note
+
+' ===== CONVENCIONES UML =====
+legend bottom
+**CONVENCIONES UML - CASOS DE USO**
+
+**Actores por Canal:**
+🔵 Actor Móvil - Usuarios aplicación móvil
+🟢 Actor Web - Usuarios aplicación web  
+🟡 Actor Admin - Administradores del sistema
+⚪ Actor Externo - Sistemas externos (Mock)
+
+**Conectores:**
+→ Relación actor-caso de uso
+-- Separación visual por capas
+end legend
+
+@enduml

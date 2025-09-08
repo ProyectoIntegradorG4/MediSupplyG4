@@ -1,0 +1,138 @@
+@startuml ModeloEstructurasDatos
+!theme aws-orange
+skinparam backgroundColor transparent
+skinparam maxMessageSize 300
+skinparam dpi 150
+skinparam shadowing false
+
+' Configuración de colores para componentes
+skinparam component {
+    BackgroundColor LightSteelBlue
+    BorderColor DarkBlue
+    FontColor Black
+}
+skinparam package {
+    BackgroundColor AliceBlue
+    BorderColor DarkBlue
+    FontColor DarkBlue
+}
+skinparam note {
+    BackgroundColor LightYellow
+    BorderColor Orange
+    FontColor Black
+}
+
+title Modelo de Estructuras de Datos
+
+package "Redis Cache Structure" {
+    component "SessionCache" <<cache>> {
+        [user_session:{user_id}] --> [JWT Token + Metadata]
+        [TTL: 4 horas]
+    }
+    
+    component "ProductCache" <<cache>> {
+        [product:{product_id}] --> [Product Details + Stock]
+        [TTL: 30 minutos]
+    }
+    
+    component "OrderStateCache" <<cache>> {
+        [order_state:{order_id}] --> [Current State + Progress]
+        [TTL: 1 hora]
+    }
+    
+    component "InventoryCache" <<cache>> {
+        [inventory:{product_id}:{location}] --> [Available Stock + Reserved]
+        [TTL: 5 minutos]
+    }
+    
+    component "RouteCache" <<cache>> {
+        [route_optimization:{date}:{zone}] --> [Optimized Routes + ETA]
+        [TTL: 2 horas]
+    }
+}
+
+package "PostgreSQL Tables" {
+    component "MainTables" <<database>> {
+        [usuarios: id, email, nombre, telefono, activo]
+        [productos: id, nombre, descripcion, precio, categoria_id]
+        [pedidos: id, usuario_id, estado, total, created_at]
+        [inventario: producto_id, ubicacion_id, stock_disponible]
+        [proveedores: id, codigo, nombre, contacto]
+    }
+    
+    component "AuditTables" <<database>> {
+        [eventos_pedidos: id, pedido_id, evento_tipo, datos_evento, timestamp]
+        [inventario_movimientos: id, producto_id, tipo_movimiento, cantidad, timestamp]
+        [sesiones_usuario: id, usuario_id, token_hash, expires_at, created_at]
+        [audit_logs: id, tabla, accion, usuario_id, datos_anteriores, timestamp]
+    }
+    
+    component "ReadModels" <<database>> {
+        [resumen_ventas: fecha, usuario_id, total_ventas, cantidad_pedidos]
+        [stock_alerts: producto_id, ubicacion_id, stock_actual, stock_minimo]
+        [user_profiles: usuario_id, ultima_compra, total_gastado, preferencias]
+        [route_history: fecha, zona, ruta_optimizada, tiempo_total]
+    }
+}
+
+package "PostgreSQL Indexes" {
+    component "PrimaryIndexes" <<index>> {
+        [usuarios_pkey: btree(id)]
+        [productos_pkey: btree(id)]
+        [pedidos_pkey: btree(id)]
+        [inventario_pkey: btree(producto_id, ubicacion_id)]
+    }
+    
+    component "SearchIndexes" <<index>> {
+        [productos_search: gin(to_tsvector(nombre || descripcion))]
+        [usuarios_email: unique btree(email)]
+        [pedidos_usuario: btree(usuario_id, created_at)]
+        [eventos_pedido: btree(pedido_id, timestamp)]
+    }
+    
+    component "PerformanceIndexes" <<index>> {
+        [pedidos_estado_fecha: btree(estado, created_at)]
+        [inventario_stock_bajo: btree(stock_disponible) WHERE stock_disponible < 10]
+        [audit_logs_timestamp: btree(timestamp, tabla)]
+        [sesiones_expires: btree(expires_at) WHERE expires_at > NOW()]
+    }
+}
+
+package "S3 Document Structure" {
+    component "DocumentBuckets" <<s3-bucket>> {
+        [medisupply-documents-prod]
+        [medisupply-images-prod]
+        [medisupply-reports-prod]
+        [medisupply-backups-prod]
+    }
+    
+    component "DocumentStructure" <<s3-structure>> {
+        [/documents/invoices/{year}/{month}/]
+        [/images/products/{category}/]
+        [/images/users/avatars/]
+        [/reports/{type}/{year}/{month}/]
+        [/backups/database/{date}/]
+    }
+    
+    component "FileTypes" <<s3-content>> {
+        [Invoices: PDF files with metadata]
+        [Product Images: WebP optimized]
+        [User Avatars: WebP 150x150]
+        [Reports: PDF and Excel formats]
+        [Backups: Compressed PostgreSQL dumps]
+    }
+}
+
+' Relaciones entre estructuras
+SessionCache --> MainTables : "Validates user sessions"
+ProductCache --> SearchIndexes : "Queries product data"
+OrderStateCache --> AuditTables : "Reads order events"
+InventoryCache --> PerformanceIndexes : "Updates stock data"
+
+MainTables --> ReadModels : "Generates summary data"
+AuditTables --> ReadModels : "Historical analysis"
+
+DocumentBuckets --> DocumentStructure : "Organized storage"
+FileTypes --> DocumentStructure : "Content types"
+
+@enduml

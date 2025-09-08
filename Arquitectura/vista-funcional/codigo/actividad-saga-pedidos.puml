@@ -1,0 +1,131 @@
+@startuml Modelo de Actividades - Sistema MediSupply
+skinparam backgroundColor transparent
+skinparam activity {
+    BackgroundColor #F8F9FA
+    BorderColor #6C757D
+    FontColor #212529
+}
+skinparam partition {
+    BackgroundColor #E3F2FD
+    BorderColor #1976D2
+    FontColor #0D47A1
+}
+
+title Modelo de Actividades: SAGA Pattern
+partition "Aplicación Móvil" {
+    start
+    :Iniciar Creación Pedido;
+    note right: **Tiempo límite**: 30s interfaz
+    :Validar Sesión;
+    note right: **Token JWT**: Caché local
+}
+
+partition "Gateway de API" {
+    :Recibir Solicitud;
+    note right: **Límite de velocidad**: 100 sol/min
+    :Validar Autenticación;
+    note right: **Interruptor de circuito**: 3 fallos
+    :Enrutar Solicitud;
+    note right: **Balanceador de carga**: Round Robin
+}
+
+partition "Servicio de Pedidos\n(Coordinador SAGA)" {
+    :Iniciar Coordinador SAGA;
+    note right: **Patrón**: Orquestación distribuida
+    :Generar ID SAGA;
+    note right: **UUID**: Trazabilidad pedido
+    :Registrar Evento SAGA_INICIADO;
+    :Validar Datos Pedido;
+    note right: **Tiempo límite**: 500ms validación
+    if (Validación correcta?) then (sí)
+        :Crear Pedido PENDIENTE;
+        note right: **Estado**: Inmutable
+    else (no)
+        :Rechazar Pedido;
+        :Emitir Evento SAGA_RECHAZADO;
+        :Mostrar Error Validación;
+        stop
+    endif
+}
+
+partition "Servicio de Inventario" {
+    :Consultar Stock;
+    note right: **Caché Redis**: >95% aciertos\n**Consulta**: <100ms PostgreSQL
+    if (Stock Disponible?) then (sí)
+        :Reservar Inventario;
+        note right: **Bloqueo**: 5s tiempo límite
+        :Emitir Evento INVENTARIO_RESERVADO;
+        note right: **SQS**: Entrega garantizada
+    else (no)
+        :Emitir Evento INVENTARIO_NO_DISPONIBLE;
+        :Abortar SAGA;
+        partition "Servicio de Pedidos\n(Coordinador SAGA)" {
+            :Actualizar Estado CANCELADO;
+            :Emitir Evento SAGA_ABORTADO;
+        }
+        partition "Aplicación Móvil" {
+            :Mostrar Error Stock;
+            stop
+        }
+    endif
+}
+
+partition "Servicio de Logística" {
+    :Programar Entrega;
+    note right: **Optimización rutas**: Algoritmo entrega\n**Tiempo límite**: 3s cálculo
+    if (Entrega Programada?) then (sí)
+        :Confirmar Programación;
+        note right: **Geolocalización**: Validación GPS (Mock)
+        :Emitir Evento ENTREGA_PROGRAMADA;
+        note right: **SNS**: Notificaciones push
+    else (no)
+        :Emitir Evento ENTREGA_FALLIDA;
+        partition "Servicio de Pedidos\n(Coordinador SAGA)" {
+            :Iniciar Compensación SAGA;
+            note right: **Reversión**: <1s rollback
+        }
+        partition "Servicio de Inventario" {
+            :Compensar: Liberar Inventario;
+            note right: **Liberación**: INVENTARIO_LIBERADO
+            :Emitir Evento INVENTARIO_LIBERADO;
+        }
+        partition "Servicio de Pedidos\n(Coordinador SAGA)" {
+            :Cancelar Pedido;
+            :Emitir Evento SAGA_COMPENSADO;
+        }
+        partition "Aplicación Móvil" {
+            :Mostrar Error Entrega;
+            stop
+        }
+    endif
+}
+
+partition "Servicio de Pedidos\n(Coordinador SAGA)" {
+    :Actualizar Estado CONFIRMADO;
+    note right: **ACID**: Transacción PostgreSQL
+    :Emitir Evento SAGA_COMPLETADO;
+    note right: **Trazabilidad**: Registro inmutable
+}
+
+partition "Aplicación Móvil" {
+    :Mostrar Confirmación;
+    note right: **Actualización interfaz**: Estado pedido
+    end
+}
+
+floating note left: **DECISIÓN ARQUITECTÓNICA: Patrón SAGA Simplificado**\n\n**✅ Coordinación Distribuida MVP:**\n• **Inventario**: Consulta tiempo real <2s (HU-MOV-005/008)\n• **Pedidos**: Estados Pendiente→Procesando→Enviado→Entregado (HU-MOV-009)\n• **Entregas**: Programación y seguimiento GPS (HU-MOV-010)\n• **Compensación**: Liberación automática de inventario\n\n**MÉTRICAS DE CALIDAD MVP:**\n• Latencia consultas: <1s (99.5%)\n• Latencia operaciones: <3s (99.5%)\n• Disponibilidad: ≥99.95% horario comercial\n• Capacidad: 100 pedidos/min sostenidos\n• Compensación: <1s reversión inventario
+
+' ===== CONVENCIONES UML =====
+legend bottom
+**CONVENCIONES**
+
+**Elementos:**
+⚫ start/end - Inicio y fin del flujo
+⬛ Actividad - Acción o proceso
+◆ Condición - Punto de decisión
+🟦 Partición - Agrupación por responsabilidad
+<back:yellow><color:black><b> Nota </b></color></back> - Anotaciones técnicas
+
+end legend
+
+@enduml

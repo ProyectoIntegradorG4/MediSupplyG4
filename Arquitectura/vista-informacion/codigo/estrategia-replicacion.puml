@@ -1,0 +1,181 @@
+@startuml EstrategiaReplicacion
+!theme aws-orange
+skinparam backgroundColor transparent
+skinparam maxMessageSize 300
+skinparam dpi 150
+skinparam shadowing false
+
+' Configuración de colores para nodos
+skinparam node {
+    BackgroundColor LightCyan
+    BorderColor DarkBlue
+    FontColor Black
+}
+skinparam component {
+    BackgroundColor LightSteelBlue
+    BorderColor DarkBlue
+    FontColor Black
+}
+skinparam database {
+    BackgroundColor LightGreen
+    BorderColor DarkGreen
+    FontColor Black
+}
+
+title Estrategia de Replicacion 
+
+package "Availability Zone A" {
+    node "AZ-1a" {
+        database "RDS Primary" <<postgresql>> {
+            [Master Database]
+            [Read/Write Operations]
+            [Automatic Backups]
+        }
+        
+        component "Redis Primary" <<elasticache>> {
+            [Master Cache Node]
+            [Write Operations]
+            [Failover Endpoint]
+        }
+        
+        component "ECS Primary" <<fargate>> {
+            [Primary App Instances]
+            [Load Balanced]
+        }
+    }
+}
+
+package "Availability Zone B" {
+    node "AZ-1b" {
+        database "RDS Standby" <<postgresql>> {
+            [Standby Database]
+            [Synchronous Replication]
+            [Automatic Failover]
+        }
+        
+        component "Redis Replica" <<elasticache>> {
+            [Read Replica Node]
+            [Asynchronous Replication]
+            [Read Operations]
+        }
+        
+        component "ECS Secondary" <<fargate>> {
+            [Secondary App Instances]
+            [Load Balanced]
+        }
+    }
+}
+
+package "Cross-Region Backup" {
+    node "Region us-east-1" {
+        database "RDS Backup" <<postgresql>> {
+            [Point-in-Time Recovery]
+            [Automated Snapshots]
+            [7-day retention]
+        }
+        
+        component "S3 Replication" <<s3>> {
+            [Cross-Region Replication]
+            [99.999999999% Durability]
+            [Versioning Enabled]
+        }
+    }
+}
+
+package "S3 Storage Strategy" {
+    component "Primary S3" <<s3-primary>> {
+        [medisupply-documents-prod]
+        [Intelligent Tiering]
+        [Lifecycle Policies]
+        [Encryption at Rest]
+    }
+    
+    component "Backup S3" <<s3-backup>> {
+        [medisupply-backup-prod]
+        [Database Backups]
+        [Application Logs]
+        [Configuration Files]
+    }
+    
+    component "DR S3" <<s3-dr>> {
+        [medisupply-dr-prod]
+        [Disaster Recovery]
+        [Cross-Region Sync]
+        [Emergency Restore]
+    }
+}
+
+package "Replication Patterns" {
+    component "DatabaseReplication" <<pattern>> {
+        [Pattern: Master-Standby]
+        [Mode: Synchronous]
+        [Failover: Automatic <60s]
+        [Consistency: Strong]
+    }
+    
+    component "CacheReplication" <<pattern>> {
+        [Pattern: Master-Replica]
+        [Mode: Asynchronous]
+        [Failover: Manual/Automatic]
+        [Consistency: Eventual]
+    }
+    
+    component "StorageReplication" <<pattern>> {
+        [Pattern: Cross-Region]
+        [Mode: Asynchronous]
+        [Sync: Near Real-time]
+        [Versioning: Enabled]
+    }
+    
+    component "ApplicationReplication" <<pattern>> {
+        [Pattern: Active-Active]
+        [Load Balancer: ALB]
+        [Health Checks: /health]
+        [Auto Scaling: Enabled]
+    }
+}
+
+package "Backup Strategy" {
+    component "AutomatedBackups" <<backup>> {
+        [RDS: Daily automated snapshots]
+        [Redis: No native backup (stateless)]
+        [S3: Versioning + Lifecycle]
+        [Retention: 7 days]
+    }
+    
+    component "ManualBackups" <<backup>> {
+        [RDS: Manual snapshots before deployments]
+        [Application: Configuration backup]
+        [S3: Cross-region replication]
+        [Retention: 30 days]
+    }
+    
+    component "DisasterRecovery" <<backup>> {
+        [RTO: 4 hours]
+        [RPO: 15 minutes]
+        [Cross-region standby]
+        [Automated testing monthly]
+    }
+}
+
+' Conexiones de replicación
+"RDS Primary" --> "RDS Standby" : "Synchronous\nReplication"
+"Redis Primary" --> "Redis Replica" : "Asynchronous\nReplication"
+"RDS Primary" --> "RDS Backup" : "Cross-region\nBackup"
+"Primary S3" --> "S3 Replication" : "Cross-region\nReplication"
+
+"ECS Primary" --> "RDS Primary" : "Primary\nConnection"
+"ECS Secondary" --> "RDS Primary" : "Primary\nConnection"
+"ECS Primary" --> "Redis Primary" : "Cache\nWrite/Read"
+"ECS Secondary" --> "Redis Replica" : "Cache\nRead Only"
+
+"DatabaseReplication" --> "RDS Primary" : "Implements"
+"CacheReplication" --> "Redis Primary" : "Implements"
+"StorageReplication" --> "Primary S3" : "Implements"
+"ApplicationReplication" --> "ECS Primary" : "Implements"
+
+"AutomatedBackups" --> "RDS Primary" : "Daily Snapshots"
+"ManualBackups" --> "Primary S3" : "Manual Sync"
+"DisasterRecovery" --> "RDS Backup" : "Recovery Point"
+
+@enduml

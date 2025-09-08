@@ -1,0 +1,163 @@
+@startuml FlujoControlProcesamiento
+!theme aws-orange
+skinparam backgroundColor transparent
+skinparam maxMessageSize 300
+skinparam dpi 150
+skinparam shadowing false
+skinparam linetype ortho
+
+' Configuración de colores para actividades
+skinparam activity {
+    BackgroundColor LightBlue
+    BorderColor DarkBlue
+    FontColor Black
+}
+skinparam activityStart {
+    Color DarkGreen
+}
+skinparam activityEnd {
+    Color DarkRed
+}
+skinparam activityDecision {
+    BackgroundColor Yellow
+    BorderColor Orange
+    FontColor Black
+}
+skinparam partition {
+    BackgroundColor AliceBlue
+    BorderColor DarkBlue
+}
+
+title Modelo de Flujos de Control 
+
+start
+
+partition "Cliente/Vendedor" {
+    :Usuario inicia creación de pedido;
+    :Selecciona productos y cantidades;
+    :Especifica dirección de entrega;
+    :Confirma pedido;
+}
+
+partition "Servicio de Pedidos" {
+    :Valida datos del pedido;
+    
+    if (¿Datos válidos?) then (no)
+        :Retorna errores de validación;
+        stop
+    else (sí)
+        :Crea evento PedidoCreado;
+        :Persiste en Event Store;
+        :Asigna estado CREADO;
+    endif
+    
+    :Publica evento a Event Bus;
+}
+
+partition "Orquestador SAGA" {
+    :Recibe evento PedidoCreado;
+    :Inicia SAGA ProcesarPedido;
+    
+    fork
+        :Envía comando ReservarInventario;
+    fork again
+        :Envía comando ValidarCliente;
+    end fork
+}
+
+partition "Servicio de Inventario" {
+    :Recibe comando ReservarInventario;
+    :Consulta disponibilidad en cache Redis;
+    
+    if (¿Stock disponible?) then (no)
+        :Crea evento InventarioInsuficiente;
+        :Publica evento de compensación;
+        :SAGA recibe evento de fallo;
+        :Cancela pedido;
+        :Crea evento PedidoCancelado;
+        :Notifica al cliente;
+        stop
+    else (sí)
+        :Reserva stock en inventario;
+        :Actualiza cache Redis;
+        :Crea evento InventarioReservado;
+        :Persiste en Event Store;
+    endif
+}
+
+partition "Servicio de Autenticación" {
+    :Recibe comando ValidarCliente;
+    :Consulta perfil de usuario;
+    
+    if (¿Cliente válido?) then (no)
+        :Crea evento ClienteInválido;
+        :SAGA recibe evento de fallo;
+        :Libera stock reservado;
+        :Cancela pedido;
+        stop
+    else (sí)
+        :Crea evento ClienteValidado;
+    endif
+}
+
+partition "Orquestador SAGA Continuación" {
+    :Recibe eventos InventarioReservado y ClienteValidado;
+    
+    if (¿Todos los eventos recibidos?) then (no)
+        :Espera eventos faltantes;
+        note right
+        Timeout: 30 segundos
+        ASR-002: Latencia <3s
+        end note
+    else (sí)
+        :Envía comando ConfirmarPedido;
+    endif
+}
+
+partition "Servicio de Pedidos Confirmación" {
+    :Recibe comando ConfirmarPedido;
+    :Calcula totales con impuestos;
+    :Actualiza estado a CONFIRMADO;
+    :Crea evento PedidoConfirmado;
+    :Persiste en Event Store;
+    
+    fork
+        :Actualiza Read Model ResumenVentas;
+    fork again
+        :Actualiza cache EstadoPedido;
+    fork again
+        :Envía notificación al cliente;
+    end fork
+}
+
+partition "Servicio de Logística" {
+    :Recibe evento PedidoConfirmado;
+    :Consulta algoritmo de optimización;
+    :Asigna a ruta de entrega;
+    :Crea evento RutaAsignada;
+    
+    if (¿Entrega inmediata?) then (sí)
+        :Inicia proceso de empaque;
+        :Actualiza estado a PROCESANDO;
+    else (no)
+        :Programa entrega futura;
+        :Mantiene estado CONFIRMADO;
+    endif
+}
+
+partition "Seguimiento en Tiempo Real" {
+    :Cliente consulta estado del pedido;
+    :Consulta cache Redis;
+    :Retorna estado actualizado;
+    
+    note right
+    ASR-002: <1s consultas
+    Cache TTL: 1 hora
+    end note
+}
+
+:Proceso completado exitosamente;
+
+stop
+
+@enduml

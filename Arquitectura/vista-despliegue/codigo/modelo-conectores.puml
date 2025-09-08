@@ -1,0 +1,224 @@
+@startuml ModeloConectores
+!theme aws-orange
+skinparam backgroundColor transparent
+skinparam maxMessageSize 150
+skinparam dpi 150
+skinparam shadowing false
+!define RECTANGLE
+skinparam linetype ortho
+
+' Configuraciones para evitar sobreposición de etiquetas
+skinparam minClassWidth 80
+skinparam nodesep 25
+skinparam ranksep 40
+skinparam componentStyle rectangle
+skinparam interfaceStyle circle
+skinparam PackagePadding 10
+skinparam ArrowThickness 1
+skinparam ArrowFontSize 10
+
+' Configuración de estereotipos UML para conectores
+skinparam interface<<http_rest>> {
+    BackgroundColor LightBlue
+    FontColor Black
+    BorderColor DarkBlue
+}
+skinparam interface<<grpc_streaming>> {
+    BackgroundColor LightGreen
+    FontColor Black
+    BorderColor DarkGreen
+}
+skinparam interface<<message_queue>> {
+    BackgroundColor Orange
+    FontColor Black
+    BorderColor DarkOrange
+}
+skinparam interface<<database_pool>> {
+    BackgroundColor LightCyan
+    FontColor Black
+    BorderColor DarkCyan
+}
+skinparam interface<<cache_protocol>> {
+    BackgroundColor Yellow
+    FontColor Black
+    BorderColor Goldenrod
+}
+skinparam interface<<event_stream>> {
+    BackgroundColor Pink
+    FontColor Black
+    BorderColor DeepPink
+}
+skinparam interface<<external_api>> {
+    BackgroundColor Wheat
+    FontColor Black
+    BorderColor Chocolate
+}
+skinparam interface<<websocket>> {
+    BackgroundColor Lavender
+    FontColor Black
+    BorderColor Purple
+}
+
+skinparam component<<service>> {
+    BackgroundColor AliceBlue
+    FontColor Black
+}
+skinparam component<<gateway>> {
+    BackgroundColor LightSteelBlue
+    FontColor Black
+}
+skinparam component<<broker>> {
+    BackgroundColor MistyRose
+    FontColor Black
+}
+
+' ===== COMPONENTES PRINCIPALES =====
+
+' Capa Cliente
+component [Cliente Web] <<service>> as web_client
+component [Cliente Móvil] <<service>> as mobile_client
+
+' Capa Gateway
+component [API Gateway] <<gateway>> as api_gateway
+
+' Capa Servicios Core
+component [Servicio de Autenticación] <<service>> as auth_service
+component [Servicio de Pedidos] <<service>> as order_service
+component [Servicio de Inventario] <<service>> as inventory_service
+component [Orquestador SAGA] <<service>> as saga_orchestrator
+
+' Capa Servicios Negocio
+component [Servicio de Logística] <<service>> as logistics_service
+component [Servicio de Reportes] <<service>> as reporting_service
+
+' Capa Infraestructura
+component [Message Broker] <<broker>> as message_broker
+component [Base de Datos PostgreSQL] <<service>> as postgres_db
+component [Cache Redis] <<service>> as redis_cache
+
+' Servicios Externos
+component [API Google Maps (Mock)] <<service>> as google_maps
+component [Servicios DIAN/SUNAT (Mock)] <<service>> as tax_services
+
+' ===== CONECTORES HTTP/REST =====
+interface "IConectorHTTP" <<http_rest>> as http_connector
+
+interface "IAPIRestful" <<http_rest>> as rest_api
+
+interface "ICircuitBreaker" <<http_rest>> as circuit_breaker
+
+' ===== CONECTORES gRPC =====
+interface "IConectorGRPC" <<grpc_streaming>> as grpc_connector
+
+interface "IStreamingProtocol" <<grpc_streaming>> as streaming_protocol
+
+' ===== CONECTORES DE MENSAJERÍA =====
+interface "IConectorMensajeria" <<message_queue>> as message_connector
+
+interface "ISAGAOrchestration" <<message_queue>> as saga_connector
+
+' ===== CONECTORES DE BASE DE DATOS =====
+interface "IConectorBaseDatos" <<database_pool>> as db_connector
+
+interface "ICQRSDataAccess" <<database_pool>> as cqrs_connector
+
+' ===== CONECTORES DE CACHE =====
+interface "IConectorCache" <<cache_protocol>> as cache_connector
+
+interface "ISessionManager" <<cache_protocol>> as session_connector
+
+' ===== CONECTORES DE EVENTOS =====
+interface "IConectorEventos" <<event_stream>> as event_connector
+
+interface "IEventSourcing" <<event_stream>> as event_sourcing
+
+' ===== CONECTORES EXTERNOS =====
+interface "IConectorExterno" <<external_api>> as external_connector
+
+interface "IGeolocalizacion" <<external_api>> as geo_connector
+
+' ===== CONECTORES WEBSOCKET =====
+interface "IConectorTiempoReal" <<websocket>> as websocket_connector
+
+' ===== CONEXIONES PRINCIPALES =====
+
+' === CAPA 1: Cliente -> Gateway ===
+web_client --> http_connector
+mobile_client --> http_connector
+http_connector --> api_gateway
+
+' === CAPA 2: Gateway -> Servicios Core ===
+api_gateway --> rest_api
+rest_api --> auth_service
+rest_api --> order_service
+rest_api --> inventory_service
+
+' === CAPA 3: Comunicación Inter-Servicios ===
+' gRPC de alto rendimiento
+order_service --> grpc_connector
+grpc_connector --> inventory_service
+inventory_service --> streaming_protocol
+streaming_protocol --> saga_orchestrator
+
+' === CAPA 4: Mensajería Asíncrona ===
+order_service --> message_connector
+message_connector --> message_broker
+message_broker --> saga_connector
+saga_connector --> saga_orchestrator
+saga_orchestrator --> logistics_service
+
+' === CAPA 5: Persistencia ===
+order_service --> db_connector
+inventory_service --> cqrs_connector
+db_connector --> postgres_db
+cqrs_connector --> postgres_db
+
+' === CAPA 6: Cache ===
+auth_service --> cache_connector
+inventory_service --> session_connector
+cache_connector --> redis_cache
+session_connector --> redis_cache
+
+' === CAPA 7: Event Sourcing ===
+saga_orchestrator --> event_connector
+order_service --> event_sourcing
+event_connector --> message_broker
+event_sourcing --> postgres_db
+
+' === CAPA 8: Servicios Externos ===
+logistics_service --> circuit_breaker
+circuit_breaker --> external_connector
+external_connector --> geo_connector
+geo_connector --> google_maps
+
+reporting_service --> external_connector
+external_connector --> tax_services
+
+' === CAPA 9: Tiempo Real ===
+inventory_service --> websocket_connector
+websocket_connector --> web_client
+websocket_connector --> mobile_client
+
+' ===== CONVENCIONES UML =====
+legend bottom right
+**CONVENCIONES UML - MODELO DE CONECTORES**
+
+**Tipos de Conectores:**
+<back:LightBlue>  </back> HTTP/REST APIs
+<back:LightGreen>  </back> gRPC Streaming
+<back:Orange>  </back> Message Queues
+<back:LightCyan>  </back> Database Pool
+<back:Yellow>  </back> Cache Protocol
+<back:Pink>  </back> Event Stream
+<back:Wheat>  </back> External APIs (Mock)
+<back:Lavender>  </back> WebSocket Real-time
+
+**Patrones de Comunicación:**
+• Síncrono: HTTP/REST, gRPC
+• Asíncrono: Message Queues, Events
+• Caching: Redis Protocol
+• Tiempo Real: WebSocket
+• Externos: Circuit Breaker + Mock
+end legend
+
+@enduml

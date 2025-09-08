@@ -1,0 +1,347 @@
+@startuml ModeloComponentes
+!theme aws-orange
+skinparam backgroundColor transparent
+skinparam maxMessageSize 300
+skinparam dpi 150
+skinparam shadowing false
+!define RECTANGLE
+skinparam componentStyle rectangle
+skinparam linetype ortho
+
+skinparam component<<client-app>> {
+    BackgroundColor LightBlue
+    FontColor Black
+}
+skinparam component<<api-gateway>> {
+    BackgroundColor Orange
+    FontColor Black
+}
+skinparam component<<microservice>> {
+    BackgroundColor LightGreen
+    FontColor Black
+}
+skinparam component<<aws-service>> {
+    BackgroundColor Yellow
+    FontColor Black
+}
+skinparam component<<database>> {
+    BackgroundColor LightCyan
+    FontColor Black
+}
+skinparam component<<circuit-breaker>> {
+    BackgroundColor Pink
+    FontColor Black
+}
+skinparam component<<external-service>> {
+    BackgroundColor Wheat
+    FontColor Black
+}
+
+' ===== CAPA DE PRESENTACIÓN =====
+together {
+package "Capa de Presentación" as presentation_layer {
+    component [Aplicacion Web MediSupply] <<client-app>> as webapp
+    component [Aplicacion Movil MediSupply] <<client-app>> as mobileapp
+    
+    interface "IAutenticacionCliente" as iclient_auth
+    interface "ICapacidadOffline" as ioffline
+    
+    webapp -down- iclient_auth
+    mobileapp -down- ioffline
+    
+    note right of webapp
+    **Aplicación Web Cliente**
+    React 18 + TypeScript + i18next
+    WCAG 2.1 AA + OAuth 2.0
+    end note
+    
+    note right of mobileapp
+    **Aplicación Móvil Cliente**
+    React Native 0.72 + Expo
+    Offline-first + AsyncStorage
+    end note
+}
+}
+
+' ===== CAPA DE API GATEWAY =====
+together {
+package "Capa de API AWS" as api_layer {
+    component [AWS API Gateway] <<aws-service>> as apigw
+    component [Servicio de Autenticacion] <<microservice>> as auth_svc
+    component [AWS ElastiCache] <<aws-service>> as rate_limiter
+    
+    interface "IGestionAPI" as iapi_mgmt
+    interface "IAutenticacion" as iauth
+    interface "ILimiteTasas" as irate_limit
+    
+    apigw -down- iapi_mgmt
+    auth_svc -down- iauth  
+    rate_limiter -down- irate_limit
+    
+    note bottom of apigw
+    **Gateway de API Centralizado**
+    AWS API Gateway v2
+    Auth/Authz + Rate Limiting
+    end note
+}
+}
+
+' ===== CAPA DE MICROSERVICIOS =====
+together {
+package "Capa de Lógica de Negocio" as business_layer {
+    
+    package "Dominio de Inventario" as inventory_domain {
+        component [Servicio de Productos] <<microservice>> as product_svc
+        component [Servicio de Proveedores] <<microservice>> as supplier_svc
+        
+        interface "IGestionProductos" as iproduct_mgmt
+        interface "IValidacionProveedores" as isupplier_val
+        
+        product_svc -down- iproduct_mgmt
+        supplier_svc -down- isupplier_val
+        
+        note right of supplier_svc
+        **Validación de Proveedores**
+        DDD + Repository + Event Sourcing
+        Validación DIAN/SUNAT
+        end note
+    }
+    
+    package "Dominio de Ventas" as sales_domain {
+        component [Servicio de Ventas] <<microservice>> as sales_svc
+        component [Servicio CRM] <<microservice>> as crm_svc
+        component [Servicio de Visitas] <<microservice>> as visit_svc
+        
+        interface "IGestionVentas" as isales_mgmt
+        interface "IRelacionesClientes" as icrm
+        interface "ISeguimientoVisitas" as ivisit_track
+        
+        sales_svc -down- isales_mgmt
+        crm_svc -down- icrm
+        visit_svc -down- ivisit_track
+        
+        note right of visit_svc
+        **Gestión de Visitas**
+        CQRS + Event Sourcing
+        GPS + Optimización de Rutas
+        end note
+    }
+    
+    package "Dominio de Pedidos" as order_domain {
+        component [Servicio de Pedidos] <<microservice>> as order_svc
+        component [Servicio de Inventario] <<microservice>> as inventory_svc
+        component [Orquestador SAGA] <<microservice>> as saga_orch
+        
+        interface "IProcesoPedidos" as iorder_proc
+        interface "ISeguimientoInventario" as iinventory_track
+        interface "ICoordinacionSAGA" as isaga_coord
+        
+        order_svc -down- iorder_proc
+        inventory_svc -down- iinventory_track
+        saga_orch -down- isaga_coord
+        
+        note right of inventory_svc
+        **Inventario Tiempo Real**
+        Distributed Cache + CQRS
+        Event Sourcing
+        end note
+    }
+    
+    package "Dominio de Logistica" as logistics_domain {
+        component [Servicio de Logistica] <<microservice>> as logistics_svc
+        component [Optimizador de Rutas] <<microservice>> as route_opt
+        component [Servicio de Seguimiento] <<microservice>> as tracking_svc
+        
+        interface "IGestionLogistica" as ilogistics_mgmt
+        interface "IOptimizacionRutas" as iroute_opt
+        interface "ISeguimientoEntregas" as idelivery_track
+        
+        logistics_svc -down- ilogistics_mgmt
+        route_opt -down- iroute_opt
+        tracking_svc -down- idelivery_track
+        
+        note right of route_opt
+        **Optimización de Rutas**
+        Google OR-Tools + ML
+        Algoritmos Heurísticos
+        end note
+    }
+    
+    package "Dominio de Analitica" as analytics_domain {
+        component [Servicio de Reportes] <<microservice>> as reporting_svc
+        
+        interface "IInteligenciaNegocio" as ibi
+        
+        reporting_svc -down- ibi
+        
+        note right of reporting_svc
+        **Business Intelligence**
+        FastAPI + MongoDB OLAP
+        Streaming Analytics
+        end note
+    }
+}
+}
+
+' ===== CAPA DE INFRAESTRUCTURA AWS =====
+together {
+package "Capa de Infraestructura AWS" as infrastructure_layer {
+    
+    package "Arquitectura Dirigida por Eventos" as messaging_pkg {
+        component [AWS SQS] <<aws-service>> as event_bus
+        component [AWS SQS DLQ] <<aws-service>> as dlq
+        component [AWS SNS] <<aws-service>> as notification_svc
+        
+        interface "IBusEventos" as ievent_bus
+        interface "IColaFallidas" as idlq
+        interface "INotificacionFanout" as inotif_fanout
+        
+        event_bus -down- ievent_bus
+        dlq -down- idlq
+        notification_svc -down- inotif_fanout
+    }
+    
+    package "Capa de Persistencia de Datos" as data_pkg {
+        database "AWS RDS\nPostgreSQL\n(Multi-AZ)" as postgres_db <<database>>
+        database "MongoDB Atlas\nReplicas de Lectura\n(Multi-Region)" as mongo_db <<database>>
+        database "AWS ElastiCache\nCluster Redis\n(Multi-AZ)" as redis_cache <<database>>
+        database "AWS S3\nAlmacenamiento Objetos\n(Multi-Región)" as s3_storage <<database>>
+        component [PgBouncer\nPool de Conexiones] <<aws-service>> as pgbouncer
+        
+        interface "IAlmacenTransaccional" as itransact
+        interface "IAlmacenDocumentos" as idocument
+        interface "ICacheDistribuido" as icache
+        interface "IAlmacenamientoObjetos" as iobject
+        interface "IPoolConexiones" as iconnpool
+        
+        postgres_db -down- itransact
+        mongo_db -down- idocument
+        redis_cache -down- icache
+        s3_storage -down- iobject
+        pgbouncer -down- iconnpool
+    }
+    
+    package "Integraciones Externas" as external_pkg {
+        component [Circuit Breaker] <<circuit-breaker>> as circuit_breaker
+        component [API Google Maps] <<external-service>> as maps_api
+        
+        interface "ICircuitBreaker" as icircuit
+        interface "IServicioGeolocalizacion" as igeo
+        
+        circuit_breaker -down- icircuit
+        maps_api -down- igeo
+    }
+    
+    package "Observabilidad y Calidad" as observability_pkg {
+        component [AWS Application Load Balancer] <<aws-service>> as health_checks
+        component [AWS X-Ray] <<aws-service>> as distributed_tracing
+        component [AWS CloudWatch] <<aws-service>> as metrics
+        component [AWS CloudWatch Logs] <<aws-service>> as logging
+        
+        interface "IMonitoreoSalud" as ihealth
+        interface "ITrazadoDistribuido" as itrace
+        interface "IColeccionMetricas" as imetrics
+        interface "IAgregacionLogs" as ilogging
+        
+        health_checks -down- ihealth
+        distributed_tracing -down- itrace
+        metrics -down- imetrics
+        logging -down- ilogging
+    }
+}
+}
+
+' ===== SEPARADOR VISUAL =====
+presentation_layer -[hidden]down- api_layer
+api_layer -[hidden]down- business_layer  
+business_layer -[hidden]down- infrastructure_layer
+
+' CONECTORES ESENCIALES
+
+' Flujo principal: Cliente -> API Gateway -> Microservicios
+webapp --> apigw
+mobileapp --> apigw
+apigw --> auth_svc
+apigw --> product_svc
+apigw --> order_svc
+apigw --> inventory_svc
+
+' Event-driven architecture
+order_svc --> event_bus
+inventory_svc --> event_bus
+event_bus --> saga_orch
+saga_orch --> order_svc
+saga_orch --> logistics_svc
+
+' Persistencia principal
+order_svc --> postgres_db
+inventory_svc --> redis_cache
+reporting_svc --> mongo_db
+
+' Integraciones críticas
+route_opt --> maps_api
+
+' ===== ANOTACIONES ARQUITECTÓNICAS POR TÁCTICAS =====
+
+note top of event_bus
+**Arquitectura Dirigida por Eventos**
+AWS SQS + SNS
+SAGA Pattern + DLQ
+Auto-scaling Serverless
+end note
+
+note bottom of saga_orch
+**Orquestador SAGA**
+FastAPI + AWS SQS
+Compensación Automática
+Persistencia de Estado
+end note
+
+note right of postgres_db
+**CQRS - Escritura**
+AWS RDS PostgreSQL Multi-AZ
+Transacciones ACID
+Auto-failover
+end note
+
+note right of mongo_db
+**CQRS - Lectura**
+MongoDB Atlas Multi-Region
+Consultas OLAP
+Réplicas de Lectura
+end note
+
+note bottom of redis_cache
+**Cache Distribuido**
+AWS ElastiCache Redis Multi-AZ
+Inventario + Sesiones
+Auto-failover
+end note
+
+note right of circuit_breaker
+**Patrón Circuit Breaker**
+FastAPI + httpx
+Fail-fast + Auto-recuperación
+Degradación Elegante
+end note
+
+' ===== CONVENCIONES DEL DIAGRAMA =====
+legend bottom right
+|= **Convenciones - Modelo de Componentes** =|
+|**Elemento**|**Descripción**|**Color**|
+|= **Estereotipos de Componentes** =|
+|<<client-app>>|Aplicaciones Cliente|<back:LightBlue>Azul</back>|
+|<<api-gateway>>|API Gateway|<back:Orange>Naranja</back>|
+|<<microservice>>|Microservicios|<back:LightGreen>Verde</back>|
+|<<aws-service>>|Servicios AWS|<back:Yellow>Amarillo</back>|
+|<<database>>|Bases de Datos|<back:LightCyan>Cian</back>|
+|<<circuit-breaker>>|Circuit Breakers|<back:Pink>Rosa</back>|
+|<<external-service>>|Servicios Externos|<back:Wheat>Trigo</back>|
+|= **Tipos de Conexiones** =|
+|→ Sólida|Flujo Principal Request|Negro|
+|⤵ Dirigida|Event-Driven Async|Negro|
+|↓ Vertical|Persistencia CRUD|Negro|
+|→ Externa|Integración Terceros|Negro|
+endlegend
+
+@enduml

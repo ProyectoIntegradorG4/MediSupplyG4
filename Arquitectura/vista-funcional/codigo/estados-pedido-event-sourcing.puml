@@ -1,0 +1,113 @@
+@startuml estados-pedido-event-sourcing
+skinparam backgroundColor transparent
+skinparam state {
+    BackgroundColor #F8F9FA
+    BorderColor #6C757D
+    FontColor #212529
+    ArrowColor #495057
+}
+skinparam note {
+    BackgroundColor #FFF3CD
+    BorderColor #FFEAA7
+    FontColor #856404
+}
+
+title Modelo de Estados 
+
+[*] --> Inicial
+
+state Inicial {
+    state "Validando Sesión" as ValidandoSesion
+    state "Datos Recopilados" as DatosRecopilados
+    
+    [*] --> ValidandoSesion
+    ValidandoSesion --> DatosRecopilados : evento_sesion_validada
+    note right of ValidandoSesion : **DECISIÓN**: Autenticación básica\n**Event**: usuario_autenticado\n**Inmutable**: timestamp + IP + dispositivo
+}
+
+Inicial --> Pendiente : evento_pedido_creado
+note on link : **TÁCTICA**: Event Sourcing\nCommit inmutable PostgreSQL
+
+state Pendiente {
+    state "Validando Inventario" as ValidandoInventario
+    state "Reservando Stock" as ReservandoStock
+    
+    [*] --> ValidandoInventario
+    ValidandoInventario --> ReservandoStock : evento_stock_disponible
+    ValidandoInventario --> [*] : evento_stock_insuficiente
+    ReservandoStock --> [*] : evento_inventario_reservado
+    
+    note right of ValidandoInventario : **DECISIÓN**: Consulta tiempo real\n**Event**: inventario_consultado\n**Inmutable**: productos + cantidades + timestamp
+    note right of ReservandoStock : **DECISIÓN**: Bloqueo pesimista\n**Event**: stock_reservado\n**Inmutable**: reserva_id + expiracion
+}
+
+Pendiente --> Procesando : evento_validacion_completada
+Pendiente --> Cancelado : evento_stock_insuficiente
+note on link : **COMPENSACIÓN**: Automática\nEvent inmutable de cancelación
+
+state Procesando {
+    state "Preparando Pedido" as PreparandoPedido
+    state "Asignando Logística" as AsignandoLogistica
+    
+    [*] --> PreparandoPedido
+    PreparandoPedido --> AsignandoLogistica : evento_pedido_preparado
+    AsignandoLogistica --> [*] : evento_logistica_asignada
+    
+    note right of PreparandoPedido : **DECISIÓN**: Orquestación SAGA\n**Event**: preparacion_iniciada\n**Inmutable**: items + timestamps + responsable
+    note right of AsignandoLogistica : **DECISIÓN**: Algoritmo optimización\n**Event**: ruta_asignada\n**Inmutable**: vehiculo + conductor + ruta
+}
+
+Procesando --> Enviado : evento_envio_iniciado
+Procesando --> Cancelado : evento_fallo_logistica
+note on link : **COMPENSACIÓN**: SAGA\nLiberación automática inventario
+
+state Enviado {
+    state "En Tránsito" as EnTransito
+    state "En Entrega" as EnEntrega
+    
+    [*] --> EnTransito
+    EnTransito --> EnEntrega : evento_llegada_destino
+    EnEntrega --> [*] : evento_entrega_confirmada
+    
+    note right of EnTransito : **DECISIÓN**: Tracking GPS tiempo real\n**Event**: ubicacion_actualizada\n**Inmutable**: coordenadas + timestamp + estado_vehiculo
+    note right of EnEntrega : **DECISIÓN**: Confirmación manual\n**Event**: entrega_confirmada\n**Inmutable**: timestamp + ubicacion + conductor
+}
+
+Enviado --> Entregado : evento_entrega_completada
+Enviado --> Cancelado : evento_fallo_entrega
+note on link : **COMPENSACIÓN**: Completa\nReversión + auditoría
+
+state Entregado {
+    note right : **ESTADO FINAL**\n**Event**: pedido_completado\n**Inmutable**: confirmacion_final\n**Auditoría**: 100% trazable
+}
+
+state Cancelado {
+    state "Compensando" as Compensando
+    state "Auditando" as Auditando
+    
+    [*] --> Compensando
+    Compensando --> Auditando : evento_compensacion_completada
+    Auditando --> [*] : evento_auditoria_registrada
+    
+    note right of Compensando : **DECISIÓN**: Compensación automática\n**Event**: compensacion_iniciada\n**Inmutable**: motivo + timestamp + acciones
+    note right of Auditando : **DECISIÓN**: Auditoría completa\n**Event**: auditoria_completada\n**Inmutable**: trail_completo + responsables
+}
+
+' Notas de decisiones arquitectónicas
+note top of Inicial : **DECISIÓN ARQUITECTÓNICA: Event Sourcing**\n\n**Patrón Seleccionado:**\n• **Inmutabilidad**: Eventos append-only\n• **Trazabilidad**: 100% auditable\n• **Antirepudio**: Eventos inmutables\n• **Compensación**: SAGA automática\n\n**IMPLEMENTACIÓN:**\n• Cada transición = evento inmutable\n• PostgreSQL transaccional + partitioning\n• Integridad\n• Retención datos según políticas
+
+note bottom of Entregado : **MÉTRICAS TRAZABILIDAD:**\n• **Eventos capturados**: 100%\n• **Latencia escritura**: <50ms\n• **Retención**: Según políticas\n• **Integridad**: Hash SHA-256\n• **Disponibilidad**: 99.95%\n• **Auditoría**: Completa y trazable
+
+' ===== CONVENCIONES UML =====
+legend bottom
+**CONVENCIONES UML - DIAGRAMA DE ESTADOS**
+
+**Elementos UML:**
+⚫ [*] - Estado inicial/final
+⬛ Estado - Estado del pedido
+→ Transición - Cambio de estado
+<back:yellow><color:black><b> note </b></color></back> - Anotaciones técnicas
+
+end legend
+
+@enduml
