@@ -51,9 +51,37 @@ package "Redis Cache Structure" {
     }
 }
 
+package "API Event Structure" {
+    component "UserRegistrationAPI" <<api-event>> {
+        [Event Type: user_register]
+        [Request: {nombreusuario, useremail, nit}]
+        [Outcome: success|fail]
+        [Action: email | nit | other]
+        [Timestamp: ISO 8601 UTC]
+        [AuditID: UUID v4]
+    }
+    
+    component "APIEventStructure" <<json-schema>> {
+        [event: "user_register"]
+        [request: {nombreusuario, useremail, nit}]
+        [outcome: "success|fail"]
+        [action: "email | nit | other"]
+        [timestamp: "2025-09-14T15:03:21Z"]
+        [auditid: "uuid-v4"]
+    }
+}
+
 package "PostgreSQL Tables" {
+    component "InstitucionesAsociadas" <<database>> {
+        [nit: INT PRIMARY KEY]
+        [nombre_institucion: VARCHAR(255) NOT NULL]
+        [pais: VARCHAR(100) NOT NULL]
+        [fecha_registro: TIMESTAMP DEFAULT CURRENT_TIMESTAMP]
+        [activo: BOOLEAN DEFAULT TRUE]
+    }
+    
     component "MainTables" <<database>> {
-        [usuarios: id, email, nombre, telefono, activo]
+        [usuarios: id SERIAL, nombre VARCHAR(255), correo_electronico VARCHAR(255) UNIQUE, password_hash VARCHAR(255), nit INT, rol VARCHAR(50) DEFAULT 'usuario_institucional', fecha_registro TIMESTAMP, activo BOOLEAN]
         [productos: id, nombre, descripcion, precio, categoria_id]
         [pedidos: id, usuario_id, estado, total, created_at]
         [inventario: producto_id, ubicacion_id, stock_disponible]
@@ -77,6 +105,7 @@ package "PostgreSQL Tables" {
 
 package "PostgreSQL Indexes" {
     component "PrimaryIndexes" <<index>> {
+        [instituciones_pkey: btree(nit)]
         [usuarios_pkey: btree(id)]
         [productos_pkey: btree(id)]
         [pedidos_pkey: btree(id)]
@@ -85,7 +114,10 @@ package "PostgreSQL Indexes" {
     
     component "SearchIndexes" <<index>> {
         [productos_search: gin(to_tsvector(nombre || descripcion))]
-        [usuarios_email: unique btree(email)]
+        [usuarios_correo: unique btree(correo_electronico)]
+        [usuarios_nit: btree(nit)]
+        [instituciones_nombre: btree(nombre_institucion)]
+        [instituciones_pais: btree(pais)]
         [pedidos_usuario: btree(usuario_id, created_at)]
         [eventos_pedido: btree(pedido_id, timestamp)]
     }
@@ -129,6 +161,11 @@ ProductCache --> SearchIndexes : "Queries product data"
 OrderStateCache --> AuditTables : "Reads order events"
 InventoryCache --> PerformanceIndexes : "Updates stock data"
 
+UserRegistrationAPI --> InstitucionesAsociadas : "Validates NIT existence"
+UserRegistrationAPI --> MainTables : "Creates new user record"
+APIEventStructure --> AuditTables : "Logs registration events"
+
+InstitucionesAsociadas --> MainTables : "usuarios.nit REFERENCES instituciones.nit"
 MainTables --> ReadModels : "Generates summary data"
 AuditTables --> ReadModels : "Historical analysis"
 

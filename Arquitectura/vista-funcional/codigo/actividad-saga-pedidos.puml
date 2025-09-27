@@ -1,4 +1,4 @@
-@startuml Modelo de Actividades - Sistema MediSupply
+@startuml ModelodeActividades
 skinparam backgroundColor transparent
 skinparam activity {
     BackgroundColor #F8F9FA

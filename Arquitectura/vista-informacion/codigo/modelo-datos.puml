@@ -120,13 +120,73 @@ package "Valores de Objetos" as value_objects {
     }
 }
 
+' ===== API EVENT STRUCTURE =====
+package "API Events" as api_events {
+    class UserRegistrationAPI <<event-store>> {
+        --Atributos del Evento--
+        + eventType: String
+        + nombreusuario: String
+        + useremail: String
+        + nit: String
+        + outcome: String
+        + action: String
+        + timestamp: DateTime
+        + auditid: String {unique}
+        --Operaciones--
+        + validateRequest(): Boolean
+        + logEvent(): void
+        + processRegistration(): Boolean
+    }
+    
+    class APIEventStructure <<value-object>> {
+        --Estructura JSON--
+        + event: String
+        + request: RegistrationRequest
+        + outcome: String
+        + action: String
+        + timestamp: String
+        + auditid: String
+        --Operaciones--
+        + toJSON(): String
+        + fromJSON(json: String): APIEventStructure
+        + validate(): Boolean
+    }
+    
+    class RegistrationRequest <<value-object>> {
+        + nombreusuario: String
+        + useremail: String
+        + nit: String
+        --Operaciones--
+        + validateEmail(): Boolean
+        + validateNIT(): Boolean
+    }
+    
+    UserRegistrationAPI ||--|| APIEventStructure : "estructura"
+    APIEventStructure ||--|| RegistrationRequest : "request"
+}
+
 ' ===== DOMINIO DE AUTENTICACIÓN Y USUARIOS =====
 package "Dominio de Usuarios" as user_domain {
+    class InstitucionesAsociadas <<entity>> {
+        --Atributos--
+        + nit: Integer {id}
+        + nombre_institucion: String
+        + pais: PaisEnum
+        + fecha_registro: DateTime
+        + activo: Boolean
+        --Operaciones--
+        + activateInstitution(): void
+        + deactivateInstitution(): void
+        + updateName(newName: String): void
+    }
+    
     class Usuario <<aggregate-root>> {
         --Atributos--
         + usuarioId: String {id}
-        + email: String {unique}
+        + nombre: String
+        + correo_electronico: String {unique}
         + passwordHash: String
+        + nit: Integer
         + rol: RolEnum
         + estado: EstadoEnum
         + pais: PaisEnum
@@ -139,6 +199,8 @@ package "Dominio de Usuarios" as user_domain {
         + assignRole(role: RolEnum): void
         + activateUser(): void
         + deactivateUser(): void
+        + validateInstitutionAssociation(): Boolean
+        + updateName(newName: String): void
     }
     
     class PerfilUsuario <<entity>> {
@@ -176,6 +238,7 @@ package "Dominio de Usuarios" as user_domain {
         {ttl = 24 hours}
     }
     
+    InstitucionesAsociadas ||--o{ Usuario : "usuarios asociados"
     Usuario ||--|| PerfilUsuario : "perfil"
     Usuario ||--o{ SesionUsuario : "sesiones"
 }
@@ -501,6 +564,9 @@ package "Read Models - CQRS" as read_models {
 }
 
 ' ===== RELACIONES ENTRE DOMINIOS =====
+UserRegistrationAPI ||--|| InstitucionesAsociadas : "valida NIT"
+UserRegistrationAPI ||--|| Usuario : "crea usuario"
+APIEventStructure ||--|| EventStream : "auditoría"
 Usuario ||--o{ Pedido : "cliente"
 Usuario ||--o{ VisitaComercial : "vendedor"
 Usuario ||--o{ RutaEntrega : "conductor"
@@ -521,11 +587,25 @@ InventarioProducto ||--|| InventarioConsolidado : "consolidado"
 
 ' ===== ANOTACIONES DE DECISIONES ARQUITECTÓNICAS =====
 
+note top of InstitucionesAsociadas
+**Patrón**: Entity + Domain Validation
+**Justificación**: Validación de asociaciones
+institucionales por NIT
+**ASR**: ASR-004 (Seguridad) + ASR-006 (Auditoría)
+end note
+
 note top of Usuario
 **Patrón**: Aggregate Root + DDD
 **Justificación**: Consistencia transaccional
 en cambios de usuario y autenticación
 **ASR**: ASR-004 (Seguridad MFA)
+end note
+
+note left of UserRegistrationAPI
+**Patrón**: Event-Driven API + Auditoría
+**Justificación**: Trazabilidad completa
+de registros de usuarios
+**ASR**: ASR-006 (Confidencialidad + Auditoría)
 end note
 
 note right of SesionUsuario
